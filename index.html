@@ -16,13 +16,13 @@
       </a>
 
       <form class="header__search" role="search" action="#" onsubmit="return false">
-        <img class="icon" src="img/icon-search.svg" alt="">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
         <input id="headerSearch" type="search" placeholder="Должность, компания или ключевое слово" aria-label="Поиск вакансий">
       </form>
 
       <div class="header__actions">
         <button class="icon-btn" type="button" aria-label="Уведомления">
-          <img class="icon" src="img/icon-bell.svg" alt="">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
           <span class="icon-btn__badge">3</span>
         </button>
         <a class="login-link" href="#">Вход</a>
@@ -40,7 +40,7 @@
 
         <section class="filter-group">
           <h2 class="filter-group__title">
-            <img class="icon" src="img/icon-pin.svg" alt="">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
             Город
           </h2>
           <input class="filter-input" id="citySearch" type="text" placeholder="Введите город" aria-label="Поиск города">
@@ -48,13 +48,13 @@
           <ul class="filter-list" id="cityExtraList"></ul>
           <button class="show-more hidden" id="cityMoreBtn" type="button">
             <span id="cityMoreLabel">Показать все</span>
-            <img class="icon" src="img/icon-chevron.svg" alt="">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
           </button>
         </section>
 
         <section class="filter-group">
           <h2 class="filter-group__title">
-            <img class="icon" src="img/icon-money.svg" alt="">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V4h7a5 5 0 0 1 0 10H6M13 14l5 7"/></svg>
             Зарплата
           </h2>
           <ul class="filter-list" id="salaryList"></ul>
@@ -62,7 +62,7 @@
 
         <section class="filter-group">
           <h2 class="filter-group__title">
-            <img class="icon" src="img/icon-calendar.svg" alt="">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
             График вахты
           </h2>
           <ul class="filter-list" id="scheduleList"></ul>
@@ -71,7 +71,7 @@
       </div>
 
       <button class="btn btn--reset filters__reset" id="resetFilters" type="button">
-        <img class="icon" src="img/icon-x.svg" alt="">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
         Сбросить фильтры
       </button>
     </aside>
@@ -83,7 +83,7 @@
 
         <div class="sort" id="sortBtn" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
           <span id="sortLabel">По дате</span>
-          <img class="icon" src="img/icon-chevron.svg" alt="">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
           <div class="sort__menu" id="sortMenu">
             <button class="sort__option is-active" type="button" data-sort="date">По дате</button>
             <button class="sort__option" type="button" data-sort="salary-desc">По зарплате (сначала выше)</button>
@@ -105,9 +105,6 @@
       </a>
       <nav class="footer__nav" aria-label="Разделы">
         <a href="#">Вакансии</a>
-        <a href="#">Компании</a>
-        <a href="#">Как работает вахта</a>
-        <a href="#">Блог</a>
       </nav>
       <p class="footer__copy">© 2026 Вахта.ру — работа вахтой по всей России</p>
     </div>

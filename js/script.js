@@ -105,7 +105,7 @@ function renderCards(list) {
     const empty = document.createElement('div');
     empty.className = 'empty-state';
     empty.innerHTML = `
-      <img class="icon" src="img/icon-search.svg" alt="">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
       <h3>Ничего не найдено</h3>
       <p>По вашему запросу вакансий нет. Попробуйте изменить фильтры или запрос.</p>
       <button class="btn btn--ghost" type="button" id="emptyReset">Сбросить фильтры</button>`;
@@ -127,17 +127,17 @@ function renderCards(list) {
         <div class="vacancy-card__top">
           <h3 class="vacancy-card__title"><a href="#" data-title="${v.id}">${v.title}</a></h3>
           <span class="vacancy-card__date">
-            <img class="icon" src="img/icon-clock.svg" alt="">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
             ${v.dateLabel}
           </span>
         </div>
         <p class="vacancy-card__salary">${fmtSalary(v.salaryFrom, v.salaryTo)}</p>
         <div class="vacancy-card__meta">
-          <span><img class="icon" src="img/icon-pin.svg" alt="">${v.city}</span>
-          <span class="schedule-chip"><img class="icon" src="img/icon-calendar.svg" alt="">Вахта ${v.schedule}</span>
+          <span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>${v.city}</span>
+          <span class="schedule-chip"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Вахта ${v.schedule}</span>
         </div>
         <p class="vacancy-card__company-line">
-          <img class="icon" src="img/icon-check.svg" alt="">
+          <svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#056FF1"/><path d="M6 10.3l2.6 2.6L14.2 7.4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Проверенная компания · <b>${v.company}</b>
         </p>
       </div>

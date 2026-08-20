@@ -1,20 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 72" width="300" height="72">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 236 72" width="236" height="72">
   <!-- белый фон -->
-  <rect width="300" height="72" fill="#ffffff"/>
+  <rect width="236" height="72" fill="#ffffff"/>
 
-  <defs>
-    <linearGradient id="flameGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FF8A2A"/>
-      <stop offset="1" stop-color="#F75E03"/>
-    </linearGradient>
-  </defs>
-
-  <!-- текст «Вахта.ру» — на белом фоне, без теней -->
-  <text x="2" y="51" font-family="Verdana, Arial, sans-serif" font-size="44" font-weight="700" fill="#6E71AF">Вахта.ру</text>
-
-  <!-- оранжевое пламя -->
-  <g transform="translate(238, 9) scale(1.12)">
-    <path d="M20 2C12 12 7 17.5 7 25.5c0 8.8 5.8 15 13 15s13-6.2 13-15c0-8-5-13.5-13-23.5z" fill="url(#flameGrad)"/>
-    <path d="M17 20C13 24.5 11.5 27.5 11.5 31a6 6 0 0 0 12 0c0-3.5-1.5-6.5-4.5-11z" fill="#ffffff" opacity=".85"/>
-  </g>
+  <!-- «Вахта» — синий, «.ру» — оранжевый. Без теней. -->
+  <text x="4" y="51" font-family="Verdana, Arial, sans-serif" font-size="44" font-weight="700">
+    <tspan fill="#056FF1">Вахта</tspan><tspan fill="#F75E03">.ру</tspan>
+  </text>
 </svg>
