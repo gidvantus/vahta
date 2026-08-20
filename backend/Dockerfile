@@ -15,5 +15,5 @@ COPY . .
 EXPOSE 8000
 
 # При каждом старте: применяем миграции, затем поднимаем API.
-# Демо-данные сидируются в lifespan приложения (см. app/main.py).
+# Данные добавляются пользователями через API (см. app/main.py).
 CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]

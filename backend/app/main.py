@@ -11,14 +11,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.routers import filters, meta, vacancies
-from app.seed import seed_if_empty
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Демо-данные при первом старте (идемпотентно, таблицы уже созданы
-    # миграцией alembic upgrade head из entrypoint контейнера).
-    seed_if_empty()
+    # Таблицы создаются миграцией alembic upgrade head из entrypoint
+    # контейнера. Данные добавляются пользователями через API.
     yield
 
 

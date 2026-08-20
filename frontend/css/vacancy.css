@@ -1,0 +1,396 @@
+/* ==========================================================================
+   Вахта.ру — страница карточки вакансии (css/vacancy.css)
+   Дополняет базовые стили css/style.css
+   ========================================================================== */
+
+/* ------------------------------ Хлебные крошки -------------------------- */
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--c-text-3);
+  padding: 24px 0 24px;
+}
+.breadcrumbs a { color: var(--c-text-2); }
+.breadcrumbs a:hover { color: var(--c-primary); text-decoration: none; }
+.breadcrumbs .sep { color: #c3cbda; }
+.breadcrumbs .current { color: var(--c-text-2); font-weight: 600; }
+
+.vacancy-page { padding: 0 0 64px; }
+
+/* ------------------------------ Шапка вакансии -------------------------- */
+
+.vacancy-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 28px;
+  flex-wrap: wrap;
+  background: var(--c-card);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 26px 28px;
+  margin-bottom: 22px;
+}
+
+.vacancy-hero__title {
+  margin: 0 0 8px;
+  font-size: 27px;
+  line-height: 1.25;
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+.vacancy-hero__company {
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--c-text-2);
+  font-weight: 600;
+}
+.vacancy-hero__verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--c-primary);
+  background: var(--c-primary-soft);
+  border-radius: 20px;
+  padding: 3px 10px;
+}
+.vacancy-hero__verified .icon { width: 13px; height: 13px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13.5px;
+  color: var(--c-text-2);
+  background: #f2f5f9;
+  border-radius: 20px;
+  padding: 6px 13px;
+  white-space: nowrap;
+}
+.chip .icon { width: 15px; height: 15px; color: var(--c-text-3); }
+
+.vacancy-hero__actions { text-align: right; flex-shrink: 0; }
+.vacancy-hero__salary {
+  margin: 0 0 12px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--c-text);
+  white-space: nowrap;
+}
+.vacancy-hero__salary small {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--c-text-3);
+  margin-top: 2px;
+}
+.vacancy-hero__actions .btn { min-width: 150px; }
+.vacancy-hero__actions .btn + .btn { margin-left: 10px; }
+
+/* ------------------------------- Раскладка ------------------------------ */
+
+.vacancy-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 22px;
+  align-items: start;
+}
+
+/* -------------------------------- Секции -------------------------------- */
+
+.vsection {
+  background: var(--c-card);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 24px 26px;
+  margin-bottom: 20px;
+}
+
+.vsection__title {
+  margin: 0 0 16px;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--c-text);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.vsection__title .icon { width: 19px; height: 19px; color: var(--c-primary); }
+
+.vsection p { margin: 0 0 12px; color: var(--c-text-2); font-size: 15px; line-height: 1.6; }
+.vsection p:last-child { margin-bottom: 0; }
+
+/* ------------------------------- Карусель ------------------------------- */
+
+.carousel {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #eef1f6;
+  user-select: none;
+}
+.carousel__track {
+  display: flex;
+  transition: transform .35s ease;
+}
+.carousel__slide {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+.carousel__slide img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+.carousel__btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .92);
+  color: var(--c-text);
+  box-shadow: 0 2px 10px rgba(16, 24, 40, .18);
+  font-size: 20px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background .15s, opacity .15s;
+  z-index: 5;
+}
+.carousel__btn:hover { background: #fff; }
+.carousel__btn:disabled { opacity: .35; cursor: default; }
+.carousel__btn--prev { left: 14px; }
+.carousel__btn--next { right: 14px; }
+
+.carousel__dots {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  z-index: 5;
+}
+.carousel__dot {
+  width: 9px;
+  height: 9px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .55);
+  cursor: pointer;
+  transition: background .15s, transform .15s;
+}
+.carousel__dot.is-active { background: #fff; transform: scale(1.25); }
+
+/* -------------------------------- Списки -------------------------------- */
+
+.vlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px 26px;
+}
+.vlist--single { grid-template-columns: 1fr; }
+
+.vlist li {
+  position: relative;
+  padding-left: 26px;
+  color: var(--c-text-2);
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+.vlist li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--c-primary-soft);
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 10.3l2.6 2.6L14.2 7.4' fill='none' stroke='%23056FF1' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size: 11px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* ----------------------------- Акции клиента ---------------------------- */
+
+.promo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+.promo__item {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+  background: linear-gradient(135deg, #FFF3EA, #FFE7D6);
+  border: 1px solid #FFD9BD;
+  border-radius: 14px;
+  padding: 16px;
+}
+.promo__icon {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--c-orange);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.promo__icon svg { width: 22px; height: 22px; }
+.promo__title { display: block; font-weight: 700; color: var(--c-text); font-size: 14.5px; margin-bottom: 3px; }
+.promo__text { display: block; color: var(--c-text-2); font-size: 13px; line-height: 1.45; }
+
+/* ------------------------- Адрес и схема проезда ------------------------ */
+
+.route-address {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f4f8ff;
+  border: 1px solid #d9e7fb;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  color: var(--c-text);
+  font-size: 15px;
+}
+.route-address .icon { width: 18px; height: 18px; color: var(--c-primary); flex-shrink: 0; }
+.route-address b { font-weight: 700; }
+
+/* ------------------------------ Сайдбар --------------------------------- */
+
+.side-card {
+  background: var(--c-card);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+  margin-bottom: 18px;
+}
+.side-card__title {
+  margin: 0 0 14px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--c-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.side-card__title .icon { width: 17px; height: 17px; color: var(--c-primary); }
+
+.side-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.side-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--c-border-soft);
+  font-size: 14px;
+}
+.side-list li:last-child { border-bottom: 0; }
+.side-list dt { color: var(--c-text-2); }
+.side-list dd { margin: 0; font-weight: 600; color: var(--c-text); text-align: right; }
+
+.side-card__label {
+  margin: 16px 0 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--c-text-3);
+}
+
+/* чипы-варианты (график, вахта) — только отображение, не кликабельны */
+.option-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.option-chip {
+  border: 1.5px solid var(--c-border);
+  background: var(--c-card);
+  color: var(--c-text-2);
+  border-radius: 20px;
+  padding: 5px 13px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: default;
+}
+.option-chip.is-active {
+  border-color: var(--c-primary);
+  background: var(--c-primary);
+  color: #fff;
+}
+
+/* требования: да/нет */
+.req-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--c-border-soft);
+  font-size: 14px;
+  color: var(--c-text-2);
+}
+.req-item:last-child { border-bottom: 0; }
+.req-item__value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  border-radius: 20px;
+  padding: 3px 11px;
+}
+.req-item__value--yes { background: #e7f6ee; color: #128a4f; }
+.req-item__value--no { background: #fdeeee; color: #c03d3d; }
+.req-item__value .icon { width: 13px; height: 13px; }
+
+.side-employer { text-align: center; }
+.side-employer img { height: 40px; margin-bottom: 12px; }
+.side-employer .btn { width: 100%; margin-top: 8px; }
+
+/* ------------------------------ Адаптивность ---------------------------- */
+
+@media (max-width: 1000px) {
+  .vacancy-layout { grid-template-columns: 1fr; }
+  .vacancy-side { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+  .side-card { margin-bottom: 0; }
+}
+
+@media (max-width: 720px) {
+  .vacancy-hero { flex-direction: column; }
+  .vacancy-hero__actions { text-align: left; width: 100%; }
+  .vacancy-hero__actions .btn { width: 100%; margin-left: 0 !important; margin-bottom: 8px; }
+  .vacancy-hero__title { font-size: 22px; }
+}

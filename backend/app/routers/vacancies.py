@@ -19,7 +19,8 @@ def list_vacancies(
     q: Optional[str] = Query(None, description="Поиск по названию, городу или компании"),
     cities: Optional[str] = Query(None, description="Города через запятую, например: Москва,Тобольск"),
     salary_min: Optional[int] = Query(None, ge=0, description="Минимальная зарплата (от)"),
-    schedule: Optional[str] = Query(None, description="График вахты: 15/15, 30/30 … или other"),
+    salary_specified: Optional[bool] = Query(None, description="Только вакансии с указанной зарплатой"),
+    schedule: Optional[str] = Query(None, description="График вахты из справочника: 15/15, 30/30 … или other"),
     sort: Literal["date", "salary-desc", "salary-asc"] = Query("date", description="Сортировка"),
     page: int = Query(1, ge=1, description="Номер страницы"),
     page_size: int = Query(20, ge=1, le=100, description="Размер страницы"),
@@ -27,13 +28,20 @@ def list_vacancies(
 ) -> VacancyListOut:
     city_list = [c.strip() for c in cities.split(",") if c.strip()] if cities else None
 
-    conds = vacancy_conditions(q=q, cities=city_list, salary_min=salary_min, schedule=schedule)
+    conds = vacancy_conditions(
+        q=q,
+        cities=city_list,
+        salary_min=salary_min,
+        salary_specified=salary_specified,
+        schedule=schedule,
+    )
 
     total = session.exec(
         select(func.count())
         .select_from(Vacancy)
         .join(Vacancy.city)
         .join(Vacancy.company)
+        .outerjoin(Vacancy.schedule_ref)
         .where(*conds)
     ).one()
 
@@ -41,6 +49,7 @@ def list_vacancies(
         select(Vacancy)
         .join(Vacancy.city)
         .join(Vacancy.company)
+        .outerjoin(Vacancy.schedule_ref)
         .where(*conds)
         .order_by(*order_for(sort))
         .offset((page - 1) * page_size)

@@ -320,6 +320,12 @@ a:hover { text-decoration: underline; }
 .show-more .icon { width: 14px; height: 14px; transition: transform .15s; }
 .show-more.is-open .icon { transform: rotate(180deg); }
 
+/* Кнопка «Показать ещё» под списком вакансий */
+.load-more-results {
+  display: block;
+  margin: 24px auto 0;
+}
+
 .filters__reset { width: 100%; }
 
 /* ==========================================================================
@@ -419,6 +425,39 @@ a:hover { text-decoration: underline; }
   padding: 10px;
   object-fit: contain;
   box-sizing: border-box;
+}
+.vacancy-card__logo-fallback {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 1px solid #ccd4e0;
+  background: var(--c-primary-soft);
+  color: var(--c-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 700;
+}
+.load-more {
+  display: flex;
+  justify-content: center;
+  padding: 18px 0 4px;
+}
+
+/* Плейсхолдер, когда у компании нет логотипа */
+.vacancy-card__company-fallback {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 1px solid #ccd4e0;
+  background: var(--c-primary-soft);
+  color: var(--c-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
 }
 
 .vacancy-card__body { flex: 1; min-width: 0; }

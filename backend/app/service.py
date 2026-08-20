@@ -9,11 +9,8 @@ from typing import Optional
 from sqlalchemy import func, or_
 from sqlmodel import Session, select
 
-from app.models import City, Company, Vacancy
+from app.models import City, Company, Schedule, Vacancy
 from app.schemas import VacancyOut
-
-# Стандартные графики вахты; всё остальное считается «другим».
-STANDARD_SCHEDULES = ("15/15", "30/30", "45/15", "60/30")
 
 # Опции зарплаты: value, label, min (None — любое), specified_only
 SALARY_OPTIONS = (
@@ -29,12 +26,14 @@ def vacancy_conditions(
     q: Optional[str] = None,
     cities: Optional[list[str]] = None,
     salary_min: Optional[int] = None,
+    salary_specified: Optional[bool] = None,
     schedule: Optional[str] = None,
 ) -> list:
     """SQL-условия для выборки вакансий (активные + фильтры).
 
-    Требует, чтобы к запросу были присоединены city и company
-    (для текстового поиска по городу и компании).
+    Требует, чтобы к запросу были присоединены city, company
+    (для текстового поиска по городу и компании) и schedule_ref
+    (для поиска/фильтра по графику вахты).
     """
     conds = [Vacancy.is_active.is_(True)]
 
@@ -43,7 +42,7 @@ def vacancy_conditions(
         conds.append(
             or_(
                 func.lower(Vacancy.title).like(like),
-                func.lower(Vacancy.schedule).like(like),
+                func.lower(Schedule.value).like(like),
                 func.lower(City.name).like(like),
                 func.lower(Company.name).like(like),
             )
@@ -56,10 +55,14 @@ def vacancy_conditions(
         # NULL-зарплата автоматически исключается сравнением.
         conds.append(Vacancy.salary_from >= salary_min)
 
+    if salary_specified:
+        conds.append(Vacancy.salary_from.is_not(None))
+
+    # График вахты — значение из справочника schedule.
     if schedule == "other":
-        conds.append(Vacancy.schedule.notin_(STANDARD_SCHEDULES))
+        conds.append(Vacancy.schedule_id.is_(None))
     elif schedule:
-        conds.append(Vacancy.schedule == schedule)
+        conds.append(Schedule.value == schedule)
 
     return conds
 
@@ -80,10 +83,11 @@ def to_vacancy_out(v: Vacancy) -> VacancyOut:
         title=v.title,
         salary_from=v.salary_from,
         salary_to=v.salary_to,
-        schedule=v.schedule,
+        schedule=v.schedule_ref.value if v.schedule_ref else "",
         description=v.description,
         city=v.city.name if v.city else "",
         company=v.company.name if v.company else "",
         logo=v.company.logo if v.company else None,
+        verified=v.company.verified if v.company else False,
         published_at=v.published_at,
     )

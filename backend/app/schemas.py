@@ -18,6 +18,7 @@ class VacancyOut(SQLModel):
     city: str
     company: str
     logo: Optional[str] = None
+    verified: bool = False
     published_at: datetime
 
 
@@ -31,6 +32,7 @@ class VacancyListOut(SQLModel):
 class CityCount(SQLModel):
     name: str
     count: int
+    is_main: bool = False
 
 
 class ScheduleCount(SQLModel):

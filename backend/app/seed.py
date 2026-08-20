@@ -1,16 +1,23 @@
-"""Демо-данные для первого запуска.
+"""Демо-данные для ручного наполнения БД.
 
-Наполнение идемпотентно: если в таблице vacancies уже есть записи,
-сид ничего не делает. Данные повторяют прототип фронта (js/script.js),
-чтобы API и интерфейс показывали одно и то же.
+Скрипт НЕ вызывается автоматически при старте приложения (сидирование
+отключено — данные добавляются пользователями). Это ручной инструмент
+для разработки/демо: наполняет справочники городов/графиков (если их
+нет), компании и вакансии.
+
+Запуск в контейнере:
+    docker compose exec backend python -m app.seed
+
+Идемпотентно: если в таблице vacancies уже есть записи, ничего не делает.
 """
 
 from datetime import timedelta
+from typing import Optional
 
-from sqlmodel import Session, func, select
+from sqlmodel import Session, select
 
 from app.db import engine
-from app.models import City, Company, Vacancy, utcnow
+from app.models import City, Company, Schedule, Vacancy, utcnow
 
 # Компании: (name, slug, logo, verified)
 SEED_COMPANIES = [
@@ -55,41 +62,67 @@ SEED_VACANCIES = [
 ]
 
 
-def seed_if_empty() -> None:
-    """Наполняет БД демо-данными, если таблица vacancies пуста."""
-    with Session(engine) as session:
-        existing = session.exec(select(func.count()).select_from(Vacancy)).one()
-        if existing:
-            return
+def _get_or_create_city(session: Session, name: str) -> City:
+    city = session.exec(select(City).where(City.name == name)).first()
+    if city is None:
+        city = City(name=name)
+        session.add(city)
+        session.flush()
+    return city
 
+
+def _get_or_create_schedule(session: Session, value: str) -> Optional[Schedule]:
+    sched = session.exec(select(Schedule).where(Schedule.value == value)).first()
+    if sched is None:
+        sched = Schedule(value=value, label=value, sort_order=999)
+        session.add(sched)
+        session.flush()
+    return sched
+
+
+def seed_if_empty() -> int:
+    """Наполняет БД демо-данными, если таблица vacancies пуста.
+
+    Возвращает число добавленных вакансий (0 — если данные уже есть).
+    """
+    with Session(engine) as session:
+        if session.exec(select(Vacancy.id).limit(1)).first() is not None:
+            print("Вакансии уже есть — сид пропущен.")
+            return 0
+
+        # Компании (get-or-create по slug)
         companies: dict[str, Company] = {}
         for name, slug, logo, verified in SEED_COMPANIES:
-            company = Company(name=name, slug=slug, logo=logo, verified=verified)
-            session.add(company)
+            company = session.exec(select(Company).where(Company.slug == slug)).first()
+            if company is None:
+                company = Company(name=name, slug=slug, logo=logo, verified=verified)
+                session.add(company)
+                session.flush()
             companies[name] = company
 
-        cities: dict[str, City] = {}
-        city_names = sorted({v[3] for v in SEED_VACANCIES})
-        for name in city_names:
-            city = City(name=name)
-            session.add(city)
-            cities[name] = city
-
-        session.flush()  # проставляем id компаниям и городам
-
+        # Вакансии: город и график — из справочников (создаются при отсутствии)
         now = utcnow()
-        for title, s_from, s_to, city_name, schedule, company_name, days_ago, description in SEED_VACANCIES:
-            session.add(
-                Vacancy(
-                    title=title,
-                    salary_from=s_from,
-                    salary_to=s_to,
-                    schedule=schedule,
-                    description=description,
-                    city_id=cities[city_name].id,
-                    company_id=companies[company_name].id,
-                    published_at=now - timedelta(days=days_ago),
-                )
+        added = 0
+        for title, s_from, s_to, city_name, schedule_value, company_name, days_ago, desc in SEED_VACANCIES:
+            city = _get_or_create_city(session, city_name)
+            sched = _get_or_create_schedule(session, schedule_value)
+            vacancy = Vacancy(
+                title=title,
+                salary_from=s_from,
+                salary_to=s_to,
+                city_id=city.id,
+                company_id=companies[company_name].id,
+                schedule_id=sched.id if sched else None,
+                description=desc,
+                published_at=now - timedelta(days=days_ago),
             )
+            session.add(vacancy)
+            added += 1
 
         session.commit()
+        print(f"Добавлено компаний: {len(companies)}, вакансий: {added}.")
+        return added
+
+
+if __name__ == "__main__":
+    seed_if_empty()

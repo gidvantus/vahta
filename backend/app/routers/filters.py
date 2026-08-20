@@ -1,41 +1,58 @@
-"""Роутер данных для сайдбара фильтров (города, графики, зарплата)."""
+"""Роутер данных для сайдбара фильтров (города, графики, зарплата).
+
+Города и графики вахты берутся из справочников (city, schedule):
+фильтр показывает весь справочник, а счётчики считаются по активным
+вакансиям.
+"""
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import func
 from sqlmodel import Session, select
 
 from app.db import get_session
-from app.models import City, Vacancy
+from app.models import City, Schedule, Vacancy
 from app.schemas import CityCount, FiltersOut, SalaryCount, ScheduleCount
-from app.service import SALARY_OPTIONS, STANDARD_SCHEDULES
+from app.service import SALARY_OPTIONS
 
 router = APIRouter(prefix="/api/v1/filters", tags=["filters"])
 
 
 @router.get("", response_model=FiltersOut, summary="Данные для фильтров (сайдбар)")
 def get_filters(session: Session = Depends(get_session)) -> FiltersOut:
-    # --- Города: имя + число активных вакансий ---
+    # --- Города из справочника: имя + флаг is_main + число активных вакансий ---
     city_rows = session.exec(
-        select(City.name, func.count(Vacancy.id))
+        select(City.name, City.is_main, func.count(Vacancy.id))
         .outerjoin(Vacancy, (Vacancy.city_id == City.id) & Vacancy.is_active.is_(True))
-        .group_by(City.name)
+        .group_by(City.name, City.is_main)
         .order_by(func.count(Vacancy.id).desc(), City.name)
     ).all()
-    cities = [CityCount(name=r[0], count=r[1]) for r in city_rows]
+    cities = [
+        CityCount(name=r[0], count=r[2], is_main=r[1])
+        for r in city_rows
+    ]
 
-    # --- Графики вахты ---
+    # --- Графики вахты из справочника schedule ---
     sched_rows = session.exec(
-        select(Vacancy.schedule, func.count())
-        .where(Vacancy.is_active.is_(True))
-        .group_by(Vacancy.schedule)
+        select(Schedule.value, Schedule.label, Schedule.sort_order, func.count(Vacancy.id))
+        .outerjoin(
+            Vacancy,
+            (Vacancy.schedule_id == Schedule.id) & Vacancy.is_active.is_(True),
+        )
+        .group_by(Schedule.value, Schedule.label, Schedule.sort_order)
+        .order_by(Schedule.sort_order)
     ).all()
-    counts = {s: c for s, c in sched_rows}
 
     schedules = [
-        ScheduleCount(value=value, label=value, count=counts.get(value, 0))
-        for value in STANDARD_SCHEDULES
+        ScheduleCount(value=r[0], label=r[1], count=r[3])
+        for r in sched_rows
     ]
-    other = sum(c for s, c in sched_rows if s not in STANDARD_SCHEDULES)
+
+    # «Другой» — активные вакансии без графика из справочника.
+    other = session.exec(
+        select(func.count())
+        .select_from(Vacancy)
+        .where(Vacancy.is_active.is_(True), Vacancy.schedule_id.is_(None))
+    ).one()
     schedules.append(ScheduleCount(value="other", label="Другой", count=other))
 
     # --- Зарплата: считаем по фактическому распределению salary_from ---

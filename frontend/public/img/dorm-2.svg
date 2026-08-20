@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" role="img" aria-label="Фото общежития 2">
+  <defs>
+    <linearGradient id="d2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9FC3A8"/>
+      <stop offset="1" stop-color="#4E7A5C"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#d2)"/>
+  <g fill="#ffffff" opacity=".9">
+    <rect x="180" y="200" width="440" height="200" rx="12"/>
+    <path d="M200 400v-170h120v170M420 400V230h160v170"/>
+    <rect x="180" y="200" width="440" height="30" rx="6"/>
+  </g>
+  <g fill="#35563F">
+    <rect x="215" y="250" width="90" height="120" rx="8"/>
+    <rect x="455" y="250" width="90" height="120" rx="8"/>
+    <circle cx="260" cy="385" r="11"/><circle cx="500" cy="385" r="11"/>
+  </g>
+  <text x="40" y="70" font-family="Arial, sans-serif" font-size="26" font-weight="700" fill="#ffffff">Фото общежития · 2</text>
+</svg>

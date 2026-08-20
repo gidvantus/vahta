@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" role="img" aria-label="Фото места работы 2">
+  <defs>
+    <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5E8F8E"/>
+      <stop offset="1" stop-color="#28494E"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#g2)"/>
+  <g stroke="#ffffff" fill="none" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity=".9">
+    <path d="M300 420V180"/>
+    <path d="M180 420h240"/>
+    <path d="M300 180l-90 60 90 60 90-60z"/>
+    <path d="M240 300h120M240 360h120"/>
+  </g>
+  <g fill="#ffffff" opacity=".22">
+    <rect x="560" y="300" width="120" height="120" rx="8"/>
+    <rect x="580" y="200" width="80" height="100" rx="8"/>
+  </g>
+  <text x="40" y="70" font-family="Arial, sans-serif" font-size="26" font-weight="700" fill="#ffffff">Фото места работы · 2</text>
+</svg>
