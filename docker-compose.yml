@@ -1,13 +1,62 @@
+# =====================================================================
+# Вахта.ру — весь стек поднимается одной командой:
+#
+#   docker compose up --build
+#
+#   Фронтенд (статический сайт):   http://localhost  (порт 80)
+#   API (документация Swagger):    http://localhost:8000/docs
+#   Healthcheck API:               http://localhost:8000/health
+#
+# Параметры БД переопределяются через переменные окружения
+# (см. .env.example).
+# =====================================================================
+
+name: vahta
+
 services:
-  web:
-    build: .
-    image: vahta-web:latest
-    container_name: vahta
+  # ---------- PostgreSQL ----------
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-vahta}
+      POSTGRES_USER: ${POSTGRES_USER:-vahta}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vahta}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vahta} -d ${POSTGRES_DB:-vahta}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+
+  # ---------- Бэкенд: FastAPI + SQLModel + Alembic ----------
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-vahta}:${POSTGRES_PASSWORD:-vahta}@db:5432/${POSTGRES_DB:-vahta}
+      DEBUG: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ---------- Фронтенд: статика за nginx (бэк пока не подключён) ----------
+  frontend:
+    build: ./frontend
     ports:
       - "${WEB_PORT:-80}:80"
+    depends_on:
+      - backend
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost/"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
+
+volumes:
+  pgdata:

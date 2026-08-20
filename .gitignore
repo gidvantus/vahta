@@ -6,3 +6,13 @@ _tools/
 
 # Дизайн-макеты
 /Дизайн/
+
+# Python (бэкенд)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Тесты Python
+.pytest_cache/
