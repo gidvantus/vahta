@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 64" width="120" height="64">
+  <rect x="4" y="6" width="30" height="30" rx="8" fill="#B06A12"/>
+  <path d="M9 26l5.5-10 5.5 10M15 16v12" stroke="#fff" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+  <path d="M24 30l3-6 3 6M27 24v6" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none" opacity=".7"/>
+  <text x="44" y="16" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#7A4A08">ТРАНССЕРВИС</text>
+  <text x="44" y="30" font-family="Arial, sans-serif" font-size="10" font-weight="400" fill="#8A6B3C">trans-service</text>
+</svg>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 64" width="120" height="64">
+  <rect x="4" y="6" width="30" height="30" rx="8" fill="#2F6F4F"/>
+  <path d="M12 14h14M12 21h14M12 28h8" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+  <text x="44" y="16" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#24523A">СИБСТРОЙ</text>
+  <text x="44" y="30" font-family="Arial, sans-serif" font-size="10" font-weight="400" fill="#5A7A66">sibstroy</text>
+</svg>

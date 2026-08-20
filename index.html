@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Каталог вакансий — Вахта.ру</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ============================ Шапка ============================ -->
+  <header class="header">
+    <div class="header__inner">
+      <a class="header__logo" href="#" aria-label="Вахта.ру — на главную">
+        <img src="img/logo.svg" alt="Вахта.ру">
+      </a>
+
+      <form class="header__search" role="search" action="#" onsubmit="return false">
+        <img class="icon" src="img/icon-search.svg" alt="">
+        <input id="headerSearch" type="search" placeholder="Должность, компания или ключевое слово" aria-label="Поиск вакансий">
+      </form>
+
+      <div class="header__actions">
+        <button class="icon-btn" type="button" aria-label="Уведомления">
+          <img class="icon" src="img/icon-bell.svg" alt="">
+          <span class="icon-btn__badge">3</span>
+        </button>
+        <a class="login-link" href="#">Вход</a>
+        <a class="btn btn--primary" href="#">Разместить вакансию</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================= Раскладка =========================== -->
+  <main class="layout">
+
+    <!-- --------------------- Фильтры --------------------- -->
+    <aside class="filters" aria-label="Фильтры вакансий">
+      <div class="filter-groups">
+
+        <section class="filter-group">
+          <h2 class="filter-group__title">
+            <img class="icon" src="img/icon-pin.svg" alt="">
+            Город
+          </h2>
+          <input class="filter-input" id="citySearch" type="text" placeholder="Введите город" aria-label="Поиск города">
+          <ul class="filter-list" id="cityList"></ul>
+          <ul class="filter-list" id="cityExtraList"></ul>
+          <button class="show-more hidden" id="cityMoreBtn" type="button">
+            <span id="cityMoreLabel">Показать все</span>
+            <img class="icon" src="img/icon-chevron.svg" alt="">
+          </button>
+        </section>
+
+        <section class="filter-group">
+          <h2 class="filter-group__title">
+            <img class="icon" src="img/icon-money.svg" alt="">
+            Зарплата
+          </h2>
+          <ul class="filter-list" id="salaryList"></ul>
+        </section>
+
+        <section class="filter-group">
+          <h2 class="filter-group__title">
+            <img class="icon" src="img/icon-calendar.svg" alt="">
+            График вахты
+          </h2>
+          <ul class="filter-list" id="scheduleList"></ul>
+        </section>
+
+      </div>
+
+      <button class="btn btn--reset filters__reset" id="resetFilters" type="button">
+        <img class="icon" src="img/icon-x.svg" alt="">
+        Сбросить фильтры
+      </button>
+    </aside>
+
+    <!-- --------------------- Результаты --------------------- -->
+    <section class="results" aria-label="Список вакансий">
+      <div class="results-bar">
+        <p class="results-count">Найдено <b id="foundCount">0</b>&nbsp;<span id="foundWord">вакансий</span></p>
+
+        <div class="sort" id="sortBtn" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
+          <span id="sortLabel">По дате</span>
+          <img class="icon" src="img/icon-chevron.svg" alt="">
+          <div class="sort__menu" id="sortMenu">
+            <button class="sort__option is-active" type="button" data-sort="date">По дате</button>
+            <button class="sort__option" type="button" data-sort="salary-desc">По зарплате (сначала выше)</button>
+            <button class="sort__option" type="button" data-sort="salary-asc">По зарплате (сначала ниже)</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="vacancy-list" id="vacancyList"></div>
+    </section>
+
+  </main>
+
+  <!-- ============================ Футер ============================ -->
+  <footer class="footer">
+    <div class="footer__inner">
+      <a class="footer__logo" href="#" aria-label="Вахта.ру">
+        <img src="img/logo.svg" alt="Вахта.ру">
+      </a>
+      <nav class="footer__nav" aria-label="Разделы">
+        <a href="#">Вакансии</a>
+        <a href="#">Компании</a>
+        <a href="#">Как работает вахта</a>
+        <a href="#">Блог</a>
+      </nav>
+      <p class="footer__copy">© 2026 Вахта.ру — работа вахтой по всей России</p>
+    </div>
+  </footer>
+
+  <script src="js/script.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 64" width="120" height="64">
+  <defs>
+    <linearGradient id="sb" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0E9DD9"/>
+      <stop offset="1" stop-color="#0B7FC0"/>
+    </linearGradient>
+  </defs>
+  <!-- blue rounded square mark -->
+  <rect x="4" y="6" width="30" height="30" rx="8" fill="url(#sb)"/>
+  <text x="19" y="27" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">S</text>
+  <!-- brand text -->
+  <text x="44" y="16" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#0B5394">СИБУР</text>
+  <text x="44" y="30" font-family="Arial, sans-serif" font-size="10" font-weight="400" fill="#5A7BA0">SIBUR</text>
+</svg>
