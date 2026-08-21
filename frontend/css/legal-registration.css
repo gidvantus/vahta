@@ -1,0 +1,140 @@
+/* ==========================================================================
+   Регистрация юридического лица — отдельная страница, отдельные стили
+   (в цветовых токенах style.css)
+   ========================================================================== */
+
+.reg-page {
+  min-height: calc(100vh - var(--header-h));
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 48px 24px 80px;
+}
+
+.reg-card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--c-card);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 32px;
+}
+
+.reg-title {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+.reg-subtitle {
+  margin: 0 0 24px;
+  font-size: 14px;
+  color: var(--c-text-2);
+}
+
+/* Баннер ошибки сервера (например, телефон/ИНН уже зарегистрированы) */
+.reg-banner {
+  background: #fdecea;
+  border: 1px solid #f5c6c0;
+  color: #b3261e;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+/* Поля формы */
+.form-field { margin-bottom: 18px; }
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text);
+  margin-bottom: 7px;
+}
+
+.form-input {
+  width: 100%;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-input);
+  padding: 10px 14px;
+  font: inherit;
+  color: var(--c-text);
+  background: #fbfcfe;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.form-input:focus {
+  outline: 0;
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 3px rgba(5, 111, 241, .12);
+  background: #fff;
+}
+.form-input::placeholder { color: var(--c-text-3); }
+.form-input.is-invalid { border-color: #d93025; background: #fef7f6; }
+.form-input.is-invalid:focus { box-shadow: 0 0 0 3px rgba(217, 48, 37, .12); }
+
+.form-error {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #b3261e;
+}
+
+/* Чекбокс согласия. Ошибка под ним показывается сразу после текста
+   (без большого нижнего отступа), отступ до кнопки держит обёртка. */
+.form-consent { margin-bottom: 22px; }
+
+.form-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--c-text-2);
+  line-height: 1.5;
+  cursor: pointer;
+  margin: 4px 0 0;
+  user-select: none;
+}
+.form-checkbox input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border: 1.6px solid #c3cbda;
+  border-radius: 5px;
+  position: relative;
+  cursor: pointer;
+  transition: border-color .12s, background .12s;
+}
+.form-checkbox input[type="checkbox"]:checked {
+  border-color: var(--c-primary);
+  background: var(--c-primary);
+}
+.form-checkbox input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 9px;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  background: transparent;
+  transform: translate(-50%, -62%) rotate(45deg);
+}
+
+.form-submit {
+  width: 100%;
+  padding: 12px 18px;
+  font-size: 15px;
+}
+.form-submit:disabled { opacity: .6; cursor: default; }
+
+@media (max-width: 560px) {
+  .reg-page { padding: 24px 14px 60px; }
+  .reg-card { padding: 22px 18px; }
+}

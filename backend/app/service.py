@@ -11,6 +11,7 @@ from sqlmodel import Session, select
 
 from app.models import City, Company, Schedule, Vacancy
 from app.schemas import VacancyOut
+from app.translit import translit_slug
 
 # Опции зарплаты: value, label, min (None — любое), specified_only
 SALARY_OPTIONS = (
@@ -81,6 +82,7 @@ def to_vacancy_out(v: Vacancy) -> VacancyOut:
     return VacancyOut(
         id=v.id,
         title=v.title,
+        slug=v.slug or translit_slug(v.title),
         salary_from=v.salary_from,
         salary_to=v.salary_to,
         schedule=v.schedule_ref.value if v.schedule_ref else "",

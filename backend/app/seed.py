@@ -18,6 +18,7 @@ from sqlmodel import Session, select
 
 from app.db import engine
 from app.models import City, Company, Schedule, Vacancy, utcnow
+from app.translit import translit_slug
 
 # Компании: (name, slug, logo, verified)
 SEED_COMPANIES = [
@@ -100,14 +101,24 @@ def seed_if_empty() -> int:
                 session.flush()
             companies[name] = company
 
-        # Вакансии: город и график — из справочников (создаются при отсутствии)
+        # Вакансии: город и график — из справочников (создаются при отсутствии).
+        # slug — транслит названия, дедуплицируется суффиксом -2, -3, …
+        taken = set(session.exec(select(Vacancy.slug)).all())
         now = utcnow()
         added = 0
         for title, s_from, s_to, city_name, schedule_value, company_name, days_ago, desc in SEED_VACANCIES:
             city = _get_or_create_city(session, city_name)
             sched = _get_or_create_schedule(session, schedule_value)
+            base = translit_slug(title) or f"vacancy-{added + 1}"
+            slug = base
+            n = 2
+            while slug in taken:
+                slug = f"{base}-{n}"
+                n += 1
+            taken.add(slug)
             vacancy = Vacancy(
                 title=title,
+                slug=slug,
                 salary_from=s_from,
                 salary_to=s_to,
                 city_id=city.id,

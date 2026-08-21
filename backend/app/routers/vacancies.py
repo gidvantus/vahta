@@ -60,6 +60,19 @@ def list_vacancies(
     return VacancyListOut(items=items, total=total, page=page, page_size=page_size)
 
 
+@router.get("/slug/{slug}", response_model=VacancyOut, summary="Вакансия по slug (транслит названия)")
+def get_vacancy_by_slug(
+    slug: str,
+    session: Session = Depends(get_session),
+) -> VacancyOut:
+    v = session.exec(
+        select(Vacancy).where(Vacancy.slug == slug, Vacancy.is_active.is_(True))
+    ).first()
+    if v is None:
+        raise HTTPException(status_code=404, detail="Вакансия не найдена")
+    return to_vacancy_out(v)
+
+
 @router.get("/{vacancy_id}", response_model=VacancyOut, summary="Вакансия по id")
 def get_vacancy(
     vacancy_id: int,

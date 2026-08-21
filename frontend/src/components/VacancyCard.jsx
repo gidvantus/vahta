@@ -40,7 +40,7 @@ export default function VacancyCard({ vacancy }) {
       <div className="vacancy-card__body">
         <div className="vacancy-card__top">
           <h3 className="vacancy-card__title">
-            <Link to="/vacancy">{vacancy.title}</Link>
+            <Link to={`/vacancy/${vacancy.slug}`}>{vacancy.title}</Link>
           </h3>
           <span className="vacancy-card__date">
             {IconClock}

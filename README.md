@@ -10,6 +10,12 @@
 - `/vacancy/` — карточка вакансии, пока **статическая** (не из базы,
   интеграция с `GET /api/v1/vacancies/{id}` — следующий шаг).
 
+Также есть отдельные страницы регистрации и личного кабинета:
+- `/register-company` — регистрация юридического лица;
+- `/account` — личный кабинет: данные пользователя и организации,
+  введённые при регистрации (пока — последняя запись из базы,
+  без пароля; авторизация — следующий шаг).
+
 ## Быстрый старт (весь стек из одного файла)
 
 ```bash
@@ -62,9 +68,9 @@ frontend/                — фронтенд (Vite + React)
 ├── package.json         — npm ci && npm run build
 ├── src/
 │   ├── main.jsx         — рендер приложения (React + Router)
-│   ├── App.jsx          — маршруты: / (каталог), /vacancy (карточка)
-│   ├── api.js           — слой API: fetch /api/v1/vacancies, /api/v1/filters
-│   ├── pages/           — CatalogPage (из БД), VacancyPage (пока статична)
+│   ├── App.jsx          — маршруты: / (каталог), /vacancy/:slug (карточка)
+│   ├── api.js           — слой API: vacancies, filters, vacancy по slug
+│   ├── pages/           — CatalogPage (из БД), VacancyPage (по slug из адреса)
 │   ├── components/      — Header, Footer, VacancyCard, FilterSidebar,
 │   │                      SortMenu, Carousel, Toast
 │   ├── lib/             — query.js (параметры запроса), format.js (форматы)
@@ -82,9 +88,10 @@ backend/                 — бэкенд
 │   ├── models.py        — SQLModel: Company, City, Schedule, Vacancy
 │   ├── schemas.py       — Pydantic-схемы ответов
 │   ├── service.py       — общая логика фильтрации/сортировки
+│   ├── translit.py      — транслитерация названий в slug (/vacancy/<slug>)
 │   ├── seed.py          — демо-данные (ручной запуск, не автозапуск)
 │   └── routers/         — vacancies, filters, meta
-├── alembic/             — миграции (versions/0001_initial.py, 0002_schedule_reference.py)
+├── alembic/             — миграции (versions/0001_initial.py … 0003_vacancy_slug.py)
 └── Dockerfile
 docker-compose.yml       — весь стек: db + backend + frontend
 ```
@@ -96,12 +103,19 @@ docker-compose.yml       — весь стек: db + backend + frontend
   `salary_specified` (только с указанной зарплатой), `schedule`
   (значение из справочника: `15/15`, `30/30`, `45/15`, `60/30`,
   `90/60` или `other`), `sort` (`date` | `salary-desc` | `salary-asc`),
-  `page`, `page_size`
-- `GET /api/v1/vacancies/{id}` — карточка вакансии
+  `page`, `page_size`. Каждая вакансия содержит `slug` — транслит
+  названия для уникального адреса карточки.
+- `GET /api/v1/vacancies/slug/{slug}` — карточка вакансии по slug
+  (например `/api/v1/vacancies/slug/mashinist-burovoi-ustanovki`)
+- `GET /api/v1/vacancies/{id}` — карточка вакансии по id
 - `GET /api/v1/filters` — данные сайдбара фильтров: города и графики
   вахты из справочников (`city`, `schedule`) со счётчиками активных
   вакансий, зарплатные диапазоны
 - `GET /api/v1/companies`, `GET /api/v1/cities` — справочники
+- `GET /api/v1/legal-registration/latest` — данные последней
+  регистрации для личного кабинета: регистратор (ФИО, телефон,
+  согласие, дата) и его организации (название, ИНН, дата). Пароль
+  и его хеш в ответ не включаются. 404 — регистраций пока нет.
 - `GET /health` — healthcheck
 
 ## Миграции (локально, без Docker)

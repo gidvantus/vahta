@@ -378,6 +378,7 @@
 
 .side-employer { text-align: center; }
 .side-employer img { height: 40px; margin-bottom: 12px; }
+.side-employer__name { margin: 0 0 4px; font-weight: 600; color: var(--c-text); }
 .side-employer .btn { width: 100%; margin-top: 8px; }
 
 /* ------------------------------ Адаптивность ---------------------------- */

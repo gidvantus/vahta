@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Carousel from '../components/Carousel';
+import { fetchVacancyBySlug } from '../api.js';
+import { fmtSalary, normalizeLogo } from '../lib/format.js';
 import { showToast } from '../lib/toast.js';
 import '../../css/vacancy.css';
 
+/* Демо-фотографии (плейсхолдеры; в БД фото пока не хранятся). */
 const WORK_PHOTOS = ['/img/work-1.svg', '/img/work-2.svg', '/img/work-3.svg'];
 const DORM_PHOTOS = ['/img/dorm-1.svg', '/img/dorm-2.svg', '/img/dorm-3.svg'];
-const SCHEDULES = ['1/1', '2/2', '3/3', '5/2', '6/1'];
-const SHIFT_LENGTHS = ['15 дней', '20 дней', '30 дней'];
 
 const IconPin = (
   <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" /><circle cx="12" cy="10" r="3" /></svg>
@@ -15,41 +17,89 @@ const IconPin = (
 const IconCalendar = (
   <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
 );
-const IconClock = (
-  <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 3" /></svg>
-);
 const IconVerified = (
   <svg className="icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#056FF1" /><path d="M6 10.3l2.6 2.6L14.2 7.4" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
 );
-const IconYes = (
-  <svg className="icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#128a4f" /><path d="M6 10.3l2.6 2.6L14.2 7.4" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+const IconSearch = (
+  <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
 );
 
-function OptionChips({ options, defaultIndex = 0 }) {
-  /* Отображение вариантов без интерактива (не кликабельны). */
+function EmptyState({ title, text, children }) {
   return (
-    <div className="option-chips">
-      {options.map((label, i) => (
-        <span key={label} className={i === defaultIndex ? 'option-chip is-active' : 'option-chip'}>
-          {label}
-        </span>
-      ))}
-    </div>
+    <main className="vacancy-page container">
+      <div className="empty-state">
+        {IconSearch}
+        <h3>{title}</h3>
+        {text && <p>{text}</p>}
+        {children}
+      </div>
+    </main>
   );
 }
 
 export default function VacancyPage() {
+  const { slug } = useParams();
+  const [vacancy, setVacancy] = useState(null);
+  const [status, setStatus] = useState('loading'); // loading | error | ready
   const [applied, setApplied] = useState(false);
 
   useEffect(() => {
-    document.title = 'Машинист буровой установки — Вахта.ру';
-  }, []);
+    let alive = true;
+    setStatus('loading');
+    setVacancy(null);
+    fetchVacancyBySlug(slug)
+      .then((v) => {
+        if (!alive) return;
+        setVacancy(v);
+        setStatus('ready');
+        document.title = `${v.title} — Вахта.ру`;
+      })
+      .catch(() => {
+        if (alive) setStatus('error');
+      });
+    return () => {
+      alive = false;
+    };
+  }, [slug]);
 
   function handleApply() {
     if (applied) return;
     setApplied(true);
-    showToast('Отклик отправлен! Работодатель получил ваше резюме.');
+    showToast(`Отклик отправлен! Компания <b>${vacancy.company}</b> получила ваше резюме.`);
   }
+
+  if (status === 'loading') {
+    return (
+      <>
+        <Header />
+        <EmptyState title="Загружаем вакансию…" />
+      </>
+    );
+  }
+
+  if (status === 'error' || !vacancy) {
+    return (
+      <>
+        <Header />
+        <EmptyState title="Вакансия не найдена">
+          <p>По этому адресу вакансии нет: возможно, она снята с публикации или адрес указан неверно.</p>
+          <Link className="btn btn--ghost" to="/">К списку вакансий</Link>
+        </EmptyState>
+      </>
+    );
+  }
+
+  const logo = normalizeLogo(vacancy.logo);
+  const salary = fmtSalary(vacancy.salary_from, vacancy.salary_to);
+  const applyBtn = (
+    <button
+      className={applied ? 'btn btn--apply is-applied' : 'btn btn--apply'}
+      type="button"
+      onClick={handleApply}
+    >
+      {applied ? 'Откликнуться ✓' : 'Откликнуться'}
+    </button>
+  );
 
   return (
     <>
@@ -61,125 +111,55 @@ export default function VacancyPage() {
           <span className="sep">/</span>
           <a href="/">Каталог вакансий</a>
           <span className="sep">/</span>
-          <span className="current">Машинист буровой установки</span>
+          <span className="current">{vacancy.title}</span>
         </nav>
 
         {/* Шапка вакансии */}
         <section className="vacancy-hero">
           <div className="vacancy-hero__info">
-            <h1 className="vacancy-hero__title">1111Машинист буровой установки</h1>
+            <h1 className="vacancy-hero__title">{vacancy.title}</h1>
             <p className="vacancy-hero__company">
-              Газпром нефть
-              <span className="vacancy-hero__verified">{IconVerified}проверенная компания</span>
+              {vacancy.company}
+              {vacancy.verified && (
+                <span className="vacancy-hero__verified">{IconVerified}проверенная компания</span>
+              )}
             </p>
             <div className="chips">
-              <span className="chip">{IconPin}Новый Уренгой, ЯНАО</span>
-              <span className="chip">{IconCalendar}Вахта 30/30</span>
-              <span className="chip">{IconClock}11 часов в смену</span>
+              {vacancy.city && <span className="chip">{IconPin}{vacancy.city}</span>}
+              {vacancy.schedule && <span className="chip">{IconCalendar}Вахта {vacancy.schedule}</span>}
             </div>
           </div>
 
           <div className="vacancy-hero__actions">
             <p className="vacancy-hero__salary">
-              180 000 – 220 000 ₽
+              {salary}
               <small>в месяц, на руки</small>
             </p>
-            <button
-              className={applied ? 'btn btn--apply is-applied' : 'btn btn--apply'}
-              id="applyBtn"
-              type="button"
-              onClick={handleApply}
-            >
-              {applied ? 'Откликнуться ✓' : 'Откликнуться'}
-            </button>
+            {applyBtn}
           </div>
         </section>
 
         <div className="vacancy-layout">
           <div className="vacancy-main">
 
-            {/* 7) Фото места работы */}
+            {/* Фото места работы (демо-плейсхолдеры) */}
             <section className="vsection">
               <h2 className="vsection__title">Фото места работы</h2>
               <Carousel items={WORK_PHOTOS} altPrefix="Фото места работы" />
             </section>
 
-            {/* 5) Описание вакансии */}
-            <section className="vsection">
-              <h2 className="vsection__title">Описание вакансии</h2>
-              <p>На производственную площадку в Новом Уренгое требуется машинист буровой установки. Компания «Газпром нефть» — проверенный работодатель с прозрачными условиями и своевременными выплатами.</p>
-              <p>Работа вахтовым методом 30/30. Проживание в благоустроенном общежитии и трёхразовое питание предоставляются за счёт компании. Спецодежда выдаётся при трудоустройстве.</p>
-            </section>
+            {/* Описание вакансии */}
+            {vacancy.description && (
+              <section className="vsection">
+                <h2 className="vsection__title">Описание вакансии</h2>
+                <p>{vacancy.description}</p>
+              </section>
+            )}
 
-            {/* 12) Обязанности */}
-            <section className="vsection">
-              <h2 className="vsection__title">Обязанности</h2>
-              <ul className="vlist">
-                <li>Управление буровой установкой при выполнении буровых работ</li>
-                <li>Контроль технического состояния оборудования, своевременный ремонт</li>
-                <li>Соблюдение техники безопасности и технологических регламентов</li>
-                <li>Ведение документации по эксплуатации установки</li>
-              </ul>
-            </section>
-
-            {/* 11) Акции клиента */}
-            <section className="vsection">
-              <h2 className="vsection__title">Акции клиента</h2>
-              <div className="promo">
-                <div className="promo__item">
-                  <span className="promo__icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M8 12l2.5 2.5L16 9" /></svg>
-                  </span>
-                  <div>
-                    <b className="promo__title">Приведи друга — получи 5 000 ₽</b>
-                    <span className="promo__text">Премия за каждого приведённого вахтовика после первой вахты.</span>
-                  </div>
-                </div>
-                <div className="promo__item">
-                  <span className="promo__icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M13 2L4.5 13.5H11L9.5 22 19 10h-6.5z" /></svg>
-                  </span>
-                  <div>
-                    <b className="promo__title">Бонус за вахту 60 дней</b>
-                    <span className="promo__text">+10 000 ₽ к зарплате при отработке вахты 60 дней без перерыва.</span>
-                  </div>
-                </div>
-                <div className="promo__item">
-                  <span className="promo__icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 2l8 3.5v5.5c0 5-3.4 9.3-8 11-4.6-1.7-8-6-8-11V5.5z" /></svg>
-                  </span>
-                  <div>
-                    <b className="promo__title">Бесплатная спецодежда</b>
-                    <span className="promo__text">Полный комплект спецодежды и средств защиты при трудоустройстве.</span>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* 8) Фото места проживания */}
+            {/* Фото места проживания (демо-плейсхолдеры) */}
             <section className="vsection">
               <h2 className="vsection__title">Фото места проживания</h2>
               <Carousel items={DORM_PHOTOS} altPrefix="Фото общежития" />
-            </section>
-
-            {/* 13) Условия проживания */}
-            <section className="vsection">
-              <h2 className="vsection__title">Условия проживания</h2>
-              <ul className="vlist">
-                <li>Бесплатное благоустроенное общежитие (2–3 человека в комнате)</li>
-                <li>Трёхразовое питание в столовой за счёт компании</li>
-                <li>Душевые, прачечная, комната отдыха, Wi-Fi в общежитии</li>
-                <li>Доставка до места работы служебным транспортом</li>
-              </ul>
-            </section>
-
-            {/* 6) Адрес общежития */}
-            <section className="vsection">
-              <h2 className="vsection__title">Общежитие</h2>
-              <p className="route-address">
-                {IconPin}
-                <span>Адрес общежития: <b>г. Новый Уренгой, ул. Промысловая, д. 12</b></span>
-              </p>
             </section>
 
           </div>
@@ -192,48 +172,34 @@ export default function VacancyPage() {
               <dl className="side-list">
                 <div>
                   <dt>Зарплата</dt>
-                  <dd>от 180 000 до 220 000 ₽</dd>
+                  <dd>{salary}</dd>
                 </div>
-                <div>
-                  <dt>Рабочих часов</dt>
-                  <dd>11 часов в смену</dd>
-                </div>
+                {vacancy.schedule && (
+                  <div>
+                    <dt>График вахты</dt>
+                    <dd>{vacancy.schedule}</dd>
+                  </div>
+                )}
+                {vacancy.city && (
+                  <div>
+                    <dt>Город</dt>
+                    <dd>{vacancy.city}</dd>
+                  </div>
+                )}
               </dl>
-
-              <p className="side-card__label">График работы</p>
-              <OptionChips options={SCHEDULES} defaultIndex={1} />
-
-              <p className="side-card__label">Продолжительность вахты</p>
-              <OptionChips options={SHIFT_LENGTHS} defaultIndex={1} />
-            </div>
-
-            <div className="side-card">
-              <h3 className="side-card__title">Требования</h3>
-              <div className="req-item">
-                <span>Опыт работы</span>
-                <span className="req-item__value req-item__value--yes">{IconYes}Да</span>
-              </div>
-              <div className="req-item">
-                <span>Медкнижка</span>
-                <span className="req-item__value req-item__value--yes">{IconYes}Да</span>
-              </div>
-              <div className="req-item">
-                <span>Спецодежда</span>
-                <span className="req-item__value req-item__value--yes">{IconYes}Да</span>
-              </div>
             </div>
 
             <div className="side-card side-employer">
               <h3 className="side-card__title">Работодатель</h3>
-              <img src="/img/gazprom.svg" alt="Газпром нефть" />
-              <button
-                className={applied ? 'btn btn--apply is-applied' : 'btn btn--apply'}
-                id="applyBtnSide"
-                type="button"
-                onClick={handleApply}
-              >
-                {applied ? 'Откликнуться ✓' : 'Откликнуться'}
-              </button>
+              {logo ? (
+                <img src={logo} alt={vacancy.company} />
+              ) : (
+                <span className="vacancy-card__logo-fallback" aria-hidden="true">
+                  {(vacancy.company || '?').trim().charAt(0).toUpperCase()}
+                </span>
+              )}
+              <p className="side-employer__name">{vacancy.company}</p>
+              {applyBtn}
             </div>
 
           </aside>

@@ -1,0 +1,82 @@
+/* ==========================================================================
+   Правовые страницы — «Публичная оферта» и «Политика конфиденциальности»
+   (в цветовых токенах style.css)
+   ========================================================================== */
+
+.legal-page {
+  padding: 40px 24px 72px;
+}
+
+.legal-card {
+  max-width: 860px;
+  margin: 0 auto;
+  background: var(--c-card);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 40px 48px;
+}
+
+.legal-title {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+.legal-subtitle {
+  margin: 0 0 28px;
+  font-size: 14px;
+  color: var(--c-text-3);
+}
+
+.legal-section { margin-bottom: 28px; }
+
+.legal-section h2 {
+  margin: 0 0 12px;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+.legal-section h3 {
+  margin: 16px 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+.legal-section p {
+  margin: 0 0 10px;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--c-text-2);
+}
+
+.legal-section ul,
+.legal-section ol {
+  margin: 0 0 10px;
+  padding-left: 22px;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--c-text-2);
+}
+
+.legal-section li { margin-bottom: 6px; }
+
+.legal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text-2);
+}
+.legal-back:hover { color: var(--c-primary); text-decoration: none; }
+.legal-back .icon { width: 15px; height: 15px; }
+
+@media (max-width: 720px) {
+  .legal-card { padding: 28px 22px; }
+  .legal-title { font-size: 23px; }
+}

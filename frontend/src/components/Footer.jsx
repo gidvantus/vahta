@@ -9,6 +9,8 @@ export default function Footer() {
         </Link>
         <nav className="footer__nav" aria-label="Разделы">
           <a href="/">Вакансии</a>
+          <Link to="/offer">Публичная оферта</Link>
+          <Link to="/privacy">Политика конфиденциальности</Link>
         </nav>
         <p className="footer__copy">© 2026 Вахта.ру — работа вахтой по всей России</p>
       </div>

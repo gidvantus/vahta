@@ -25,3 +25,8 @@ export function fetchVacancies(state, page = 1, pageSize = DEFAULT_PAGE_SIZE) {
 export function fetchFilters() {
   return getJSON(`${API_BASE}/filters`);
 }
+
+/* Детальная карточка вакансии по slug (транслит названия). */
+export function fetchVacancyBySlug(slug) {
+  return getJSON(`${API_BASE}/vacancies/slug/${encodeURIComponent(slug)}`);
+}

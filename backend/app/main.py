@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import filters, meta, vacancies
+from app.routers import filters, legal_registration, meta, vacancies
 
 
 @asynccontextmanager
@@ -38,6 +38,7 @@ app.add_middleware(
 app.include_router(vacancies.router)
 app.include_router(filters.router)
 app.include_router(meta.router)
+app.include_router(legal_registration.router)
 
 
 @app.get("/", include_in_schema=False, tags=["system"])
