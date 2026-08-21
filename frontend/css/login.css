@@ -1,0 +1,106 @@
+/* ==========================================================================
+   Вход в личный кабинет — отдельная страница, отдельные стили
+   (в цветовых токенах style.css). Свои классы login-*, чтобы
+   не зависеть от стилей других страниц.
+   ========================================================================== */
+
+.login-page {
+  min-height: calc(100vh - var(--header-h));
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 48px 24px 80px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--c-card);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 32px;
+}
+
+.login-title {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+.login-subtitle {
+  margin: 0 0 24px;
+  font-size: 14px;
+  color: var(--c-text-2);
+}
+
+/* Баннер ошибки сервера (например, пользователь не найден,
+   неверный пароль) */
+.login-banner {
+  background: #fdecea;
+  border: 1px solid #f5c6c0;
+  color: #b3261e;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+/* Поля формы */
+.login-field { margin-bottom: 18px; }
+
+.login-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text);
+  margin-bottom: 7px;
+}
+
+.login-input {
+  width: 100%;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-input);
+  padding: 10px 14px;
+  font: inherit;
+  color: var(--c-text);
+  background: #fbfcfe;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.login-input:focus {
+  outline: 0;
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 3px rgba(5, 111, 241, .12);
+  background: #fff;
+}
+.login-input::placeholder { color: var(--c-text-3); }
+.login-input.is-invalid { border-color: #d93025; background: #fef7f6; }
+.login-input.is-invalid:focus { box-shadow: 0 0 0 3px rgba(217, 48, 37, .12); }
+
+.login-error {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #b3261e;
+}
+
+.login-submit {
+  width: 100%;
+  padding: 12px 18px;
+  font-size: 15px;
+}
+.login-submit:disabled { opacity: .6; cursor: default; }
+
+/* Ссылка на регистрацию под кнопкой */
+.login-register {
+  margin: 20px 0 0;
+  font-size: 14px;
+  color: var(--c-text-2);
+  text-align: center;
+}
+.login-register a { color: var(--c-primary); }
+
+@media (max-width: 560px) {
+  .login-page { padding: 24px 14px 60px; }
+  .login-card { padding: 22px 18px; }
+}

@@ -26,6 +26,16 @@
   color: var(--c-text-2);
 }
 
+/* Заголовок + кнопка «Выйти» в одну строку */
+.acc-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.acc-head .acc-subtitle { margin-bottom: 0; }
+
 /* Карточка секции */
 .acc-card {
   background: var(--c-card);
@@ -112,4 +122,5 @@
   .acc-page { padding: 24px 14px 60px; }
   .acc-card { padding: 20px 18px; }
   .acc-field { grid-template-columns: 1fr; gap: 2px; }
+  .acc-head { flex-direction: column; gap: 12px; }
 }

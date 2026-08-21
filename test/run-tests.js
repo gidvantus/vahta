@@ -1,5 +1,6 @@
 /* Функциональные тесты чистой логики фронтенда:
-   параметры запроса API (lib/query.js) и форматирование (lib/format.js). */
+   параметры запроса API (lib/query.js), форматирование (lib/format.js)
+   и сессия авторизации (lib/auth.js). */
 'use strict';
 
 const path = require('path');
@@ -12,6 +13,17 @@ const FRONTEND = path.join(__dirname, '..', 'frontend');
   );
   const { fmtSalary, plural, dateLabel, normalizeLogo } = await import(
     pathToFileURL(path.join(FRONTEND, 'src', 'lib', 'format.js')).href
+  );
+
+  /* Подменяем localStorage (в Node его нет) и импортируем сессию. */
+  const storage = new Map();
+  globalThis.localStorage = {
+    getItem: (k) => (storage.has(k) ? storage.get(k) : null),
+    setItem: (k, v) => storage.set(k, String(v)),
+    removeItem: (k) => storage.delete(k),
+  };
+  const auth = await import(
+    pathToFileURL(path.join(FRONTEND, 'src', 'lib', 'auth.js')).href
   );
 
   let failures = 0;
@@ -58,6 +70,30 @@ const FRONTEND = path.join(__dirname, '..', 'frontend');
   check('с ведущим /', normalizeLogo('/img/lukoil.svg') === '/img/lukoil.svg');
   check('внешний URL как есть', normalizeLogo('https://cdn.example.com/l.png') === 'https://cdn.example.com/l.png');
   check('null → null', normalizeLogo(null) === null);
+
+  const account = { registrant: { full_name: 'Иванов Иван', phone: '+79123456789' }, companies: [] };
+
+  console.log('— сессия авторизации (lib/auth.js) —');
+  check('до входа — не авторизован', auth.isAuthenticated() === false);
+  check('loadSession до входа → null', auth.loadSession() === null);
+
+  let notified = 0;
+  const unsubscribe = auth.subscribeAuth(() => { notified++; });
+  auth.saveSession(account);
+  check('после saveSession — авторизован', auth.isAuthenticated() === true);
+  check('loadSession возвращает данные', JSON.stringify(auth.loadSession()) === JSON.stringify(account));
+  check('подписка вызвана при saveSession', notified === 1);
+
+  auth.saveSession(account);
+  check('повторный saveSession — подписка вызвана снова', notified === 2);
+
+  unsubscribe();
+  auth.saveSession(account);
+  check('после отписки — подписка не вызывается', notified === 2);
+
+  auth.clearSession();
+  check('после clearSession — не авторизован', auth.isAuthenticated() === false);
+  check('loadSession после выхода → null', auth.loadSession() === null);
 
   console.log(failures === 0 ? '\nВСЕ ТЕСТЫ ПРОЙДЕНЫ' : `\nПРОВАЛЕНО: ${failures}`);
   process.exit(failures === 0 ? 0 : 1);

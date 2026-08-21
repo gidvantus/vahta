@@ -66,6 +66,19 @@ class CompanyOut(SQLModel):
     vacancies_count: int = 0
 
 
+class LoginIn(SQLModel):
+    """Входные данные авторизации: телефон и пароль.
+
+    Телефон приводится к каноническому виду +7XXXXXXXXXX и ищется
+    среди зарегистрированных регистраторов (legal_registrant).
+    Пароль сверяется с хешем в базе (app/security.py); ни он сам,
+    ни его хеш в ответ никогда не попадают.
+    """
+
+    phone: str = Field(max_length=32)
+    password: str = Field(max_length=128)
+
+
 class LegalRegistrationIn(SQLModel):
     """Входные данные формы регистрации юридического лица.
 

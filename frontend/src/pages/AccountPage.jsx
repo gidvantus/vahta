@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
-import { fetchAccount } from '../api/legal.js';
+import { clearSession, loadSession } from '../lib/auth.js';
 import { formatPhoneDigits } from '../lib/legal.js';
+import { showToast } from '../lib/toast.js';
 import '../../css/account.css';
 
 /* Телефон из базы хранится в каноническом виде +7XXXXXXXXXX —
@@ -36,21 +36,22 @@ function Field({ label, value }) {
   );
 }
 
+/* Личный кабинет: данные авторизованного пользователя — те же,
+   что он указал при регистрации (сохранены в сессии при входе).
+   Без авторизации страница недоступна: перенаправляет на /login. */
 export default function AccountPage() {
-  const [state, setState] = useState({ status: 'loading' });
+  const navigate = useNavigate();
+  const data = loadSession();
 
-  const load = useCallback(() => {
-    setState({ status: 'loading' });
-    fetchAccount()
-      .then((data) => setState({ status: 'ok', data }))
-      .catch((err) =>
-        setState({ status: 'error', message: err.message || 'Не удалось загрузить данные' })
-      );
-  }, []);
+  if (data === null) {
+    return <Navigate to="/login" replace />;
+  }
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  function handleLogout() {
+    clearSession();
+    showToast('Вы вышли из личного кабинета');
+    navigate('/');
+  }
 
   return (
     <>
@@ -58,82 +59,65 @@ export default function AccountPage() {
 
       <main className="acc-page">
         <div className="acc-container">
-          <h1 className="acc-title">Личный кабинет</h1>
-          <p className="acc-subtitle">
-            Данные, которые вы указали при регистрации организации
-          </p>
-
-          {state.status === 'loading' && (
-            <div className="acc-card acc-card--notice">Загружаем данные…</div>
-          )}
-
-          {state.status === 'error' && (
-            <div className="acc-card acc-card--notice">
-              <div className="acc-banner" role="alert">{state.message}</div>
-              <button className="btn btn--primary" type="button" onClick={load}>
-                Повторить
-              </button>
-            </div>
-          )}
-
-          {state.status === 'ok' && state.data === null && (
-            <div className="acc-card acc-card--notice">
-              <p className="acc-empty">
-                Зарегистрированных пользователей пока нет.
+          <div className="acc-head">
+            <div>
+              <h1 className="acc-title">Личный кабинет</h1>
+              <p className="acc-subtitle">
+                Данные, которые вы указали при регистрации организации
               </p>
-              <Link className="btn btn--primary" to="/register-company">
-                Зарегистрировать организацию
-              </Link>
             </div>
-          )}
+            <button className="btn btn--ghost" type="button" onClick={handleLogout}>
+              Выйти
+            </button>
+          </div>
 
-          {state.status === 'ok' && state.data && (
-            <>
-              <section className="acc-card" aria-labelledby="acc-user-title">
-                <h2 className="acc-card__title" id="acc-user-title">
-                  Данные пользователя
-                </h2>
-                <dl className="acc-fields">
-                  <Field label="ФИО" value={state.data.registrant.full_name} />
-                  <Field label="Телефон" value={formatPhone(state.data.registrant.phone)} />
-                  <Field
-                    label="Согласие на обработку персональных данных"
-                    value={state.data.registrant.consent ? 'Дано' : 'Не дано'}
-                  />
-                  <Field
-                    label="Дата регистрации"
-                    value={formatDate(state.data.registrant.created_at)}
-                  />
-                </dl>
-              </section>
+          <section className="acc-card" aria-labelledby="acc-user-title">
+            <h2 className="acc-card__title" id="acc-user-title">
+              Данные пользователя
+            </h2>
+            <dl className="acc-fields">
+              <Field label="ФИО" value={data.registrant.full_name} />
+              <Field label="Телефон" value={formatPhone(data.registrant.phone)} />
+              <Field
+                label="Согласие на обработку персональных данных"
+                value={data.registrant.consent ? 'Дано' : 'Не дано'}
+              />
+              <Field
+                label="Дата регистрации"
+                value={formatDate(data.registrant.created_at)}
+              />
+            </dl>
+          </section>
 
-              <section className="acc-card" aria-labelledby="acc-company-title">
-                <h2 className="acc-card__title" id="acc-company-title">
-                  Данные организации
-                </h2>
-                {state.data.companies.length === 0 ? (
-                  <p className="acc-empty">Организации не найдены.</p>
-                ) : (
-                  state.data.companies.map((company) => (
-                    <div
-                      className="acc-company"
-                      key={company.id}
-                      aria-label={`Организация: ${company.name}`}
-                    >
-                      <dl className="acc-fields">
-                        <Field label="Название организации" value={company.name} />
-                        <Field label="ИНН" value={company.inn} />
-                        <Field
-                          label="Дата регистрации"
-                          value={formatDate(company.created_at)}
-                        />
-                      </dl>
-                    </div>
-                  ))
-                )}
-              </section>
-            </>
-          )}
+          <section className="acc-card" aria-labelledby="acc-company-title">
+            <h2 className="acc-card__title" id="acc-company-title">
+              Данные организации
+            </h2>
+            {data.companies.length === 0 ? (
+              <p className="acc-empty">Организации не найдены.</p>
+            ) : (
+              data.companies.map((company) => (
+                <div
+                  className="acc-company"
+                  key={company.id}
+                  aria-label={`Организация: ${company.name}`}
+                >
+                  <dl className="acc-fields">
+                    <Field label="Название организации" value={company.name} />
+                    <Field label="ИНН" value={company.inn} />
+                    <Field
+                      label="Дата регистрации"
+                      value={formatDate(company.created_at)}
+                    />
+                  </dl>
+                </div>
+              ))
+            )}
+          </section>
+
+          <p className="acc-empty">
+            <Link to="/register-company">Зарегистрировать ещё одну организацию</Link>
+          </p>
         </div>
       </main>
     </>

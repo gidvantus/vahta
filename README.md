@@ -12,9 +12,14 @@
 
 Также есть отдельные страницы регистрации и личного кабинета:
 - `/register-company` — регистрация юридического лица;
+- `/login` — вход по телефону и паролю: сервер ищет пользователя
+  в базе и сверяет пароль с хешем; при успехе — переадресация
+  на `/account`;
 - `/account` — личный кабинет: данные пользователя и организации,
-  введённые при регистрации (пока — последняя запись из базы,
-  без пароля; авторизация — следующий шаг).
+  введённые при регистрации (доступен только после авторизации,
+  данные берутся из сессии). Кнопка в шапке: «Войти» (`/login`),
+  если не авторизован, и «Личный кабинет» (`/account`) — если
+  авторизован.
 
 ## Быстрый старт (весь стек из одного файла)
 
@@ -51,7 +56,8 @@ docker compose exec backend python -m app.seed
 ## Тесты
 
 Функциональные тесты чистой логики фронтенда (`frontend/src/lib/query.js`,
-`frontend/src/lib/format.js`) — обычный Node.js, без фреймворков:
+`frontend/src/lib/format.js`, `frontend/src/lib/auth.js`) — обычный Node.js,
+без фреймворков:
 
 ```bash
 node test/run-tests.js
@@ -68,14 +74,20 @@ frontend/                — фронтенд (Vite + React)
 ├── package.json         — npm ci && npm run build
 ├── src/
 │   ├── main.jsx         — рендер приложения (React + Router)
-│   ├── App.jsx          — маршруты: / (каталог), /vacancy/:slug (карточка)
+│   ├── App.jsx          — маршруты: / (каталог), /vacancy/:slug (карточка),
+│   │                      /register-company, /login, /account
 │   ├── api.js           — слой API: vacancies, filters, vacancy по slug
-│   ├── pages/           — CatalogPage (из БД), VacancyPage (по slug из адреса)
-│   ├── components/      — Header, Footer, VacancyCard, FilterSidebar,
+│   ├── api/auth.js      — отдельный слой API авторизации (вход по телефону/паролю)
+│   ├── pages/           — CatalogPage (из БД), VacancyPage (по slug из адреса),
+│   │                      LegalRegistrationPage, LoginPage (вход), AccountPage
+│   ├── components/      — Header (кнопка «Войти»/«Личный кабинет» по сессии),
+│   │                      Footer, VacancyCard, FilterSidebar,
 │   │                      SortMenu, Carousel, Toast
-│   ├── lib/             — query.js (параметры запроса), format.js (форматы)
+│   ├── lib/             — query.js (параметры запроса), format.js (форматы),
+│   │                      legal.js (валидация регистрации), auth.js (сессия)
 │   └── css/             — (импорт стилей из css/)
-├── css/                 — стили (style.css, vacancy.css)
+├── css/                 — стили (style.css, vacancy.css, legal-registration.css,
+│                          login.css, account.css)
 ├── public/img/          — статика: логотипы, фото, схема проезда
 ├── nginx.conf           — SPA-fallback + прокси /api/ на бэкенд
 ├── test/ → корень       — тесты лежат в ../test
@@ -88,9 +100,11 @@ backend/                 — бэкенд
 │   ├── models.py        — SQLModel: Company, City, Schedule, Vacancy
 │   ├── schemas.py       — Pydantic-схемы ответов
 │   ├── service.py       — общая логика фильтрации/сортировки
+│   ├── auth.py          — отдельная логика авторизации (поиск по телефону,
+│   │                      сверка пароля с хешем)
 │   ├── translit.py      — транслитерация названий в slug (/vacancy/<slug>)
 │   ├── seed.py          — демо-данные (ручной запуск, не автозапуск)
-│   └── routers/         — vacancies, filters, meta
+│   └── routers/         — vacancies, filters, meta, legal_registration, auth
 ├── alembic/             — миграции (versions/0001_initial.py … 0003_vacancy_slug.py)
 └── Dockerfile
 docker-compose.yml       — весь стек: db + backend + frontend
@@ -116,6 +130,12 @@ docker-compose.yml       — весь стек: db + backend + frontend
   регистрации для личного кабинета: регистратор (ФИО, телефон,
   согласие, дата) и его организации (название, ИНН, дата). Пароль
   и его хеш в ответ не включаются. 404 — регистраций пока нет.
+- `POST /api/v1/auth/login` — авторизация по телефону и паролю
+  (отдельный модуль `app/auth.py`, роутер `routers/auth.py`).
+  Ищет регистратора по телефону, сверяет пароль с хешем; при успехе
+  возвращает данные личного кабинета (те же, что указаны при
+  регистрации). Ошибки: 401 — пользователь не найден / неверный
+  пароль, 422 — телефон не в формате.
 - `GET /health` — healthcheck
 
 ## Миграции (локально, без Docker)

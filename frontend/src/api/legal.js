@@ -26,13 +26,3 @@ export async function registerLegalCompany(payload) {
   }
   return res.json();
 }
-
-/* Данные личного кабинета: последняя регистрация (регистратор +
-   организации). Сервер никогда не возвращает пароль и его хеш.
-   Пока нет ни одной регистрации — возвращает null (404). */
-export async function fetchAccount() {
-  const res = await fetch(`${API_BASE}/legal-registration/latest`);
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`Ошибка API: ${res.status}`);
-  return res.json();
-}
