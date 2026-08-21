@@ -1,0 +1,104 @@
+/* ==========================================================================
+   Вахта.ру — страница «Список вакансий» компании (css/company.css)
+   Вкладки статусов и список вакансий организации
+   ========================================================================== */
+
+.cabinet { padding: 28px 24px 64px; }
+
+/* ------------------------------ Шапка списка ---------------------------- */
+
+.cabinet-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+.cabinet-head h1 { margin: 0 0 6px; font-size: 26px; font-weight: 700; color: var(--c-text); }
+.cabinet-sub { margin: 0; color: var(--c-text-2); font-size: 15px; font-weight: 600; }
+.cabinet-head__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ------------------------------- Вкладки -------------------------------- */
+
+.cabinet-tabs {
+  display: flex;
+  gap: 6px;
+  border-bottom: 2px solid var(--c-border);
+  margin-bottom: 18px;
+  overflow-x: auto;
+}
+.cabinet-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  background: none;
+  padding: 11px 16px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--c-text-2);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color .12s;
+}
+.cabinet-tab:hover { color: var(--c-text); }
+.cabinet-tab.is-active { color: var(--c-primary); border-bottom-color: var(--c-primary); }
+.cabinet-tab__count {
+  font-size: 12px;
+  font-weight: 600;
+  background: #f1f4f9;
+  color: var(--c-text-3);
+  border-radius: 20px;
+  padding: 1px 8px;
+  font-variant-numeric: tabular-nums;
+}
+.cabinet-tab.is-active .cabinet-tab__count { background: var(--c-primary-soft); color: var(--c-primary); }
+
+/* --------------------------- Список вакансий ---------------------------- */
+
+.cabinet-rows { display: flex; flex-direction: column; gap: 12px; }
+
+.cabinet-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background: var(--c-card);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 16px 20px;
+}
+.cabinet-row__main { min-width: 0; }
+.cabinet-row__title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--c-text);
+}
+.cabinet-row__title a { color: inherit; }
+.cabinet-row__title a:hover { color: var(--c-primary); text-decoration: none; }
+.cabinet-row__meta {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  color: var(--c-text-2);
+  font-size: 13.5px;
+}
+.cabinet-row__actions { display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+.cabinet-row__actions .btn { padding: 8px 14px; font-size: 13.5px; }
+
+/* ------------------------------ Адаптивность ---------------------------- */
+
+@media (max-width: 720px) {
+  .cabinet { padding: 20px 14px 48px; }
+  .cabinet-row { flex-direction: column; align-items: stretch; }
+  .cabinet-row__actions { justify-content: flex-end; }
+  .cabinet-head__actions { width: 100%; }
+  .cabinet-head__actions .btn { flex: 1 1 auto; }
+}

@@ -78,6 +78,15 @@ class Vacancy(SQLModel, table=True):
     description: Optional[str] = Field(default=None, sa_column=Column(Text))
     is_active: bool = Field(default=True, index=True)
 
+    # Статус вакансии: draft (не опубликована/черновик) | published
+    # (в каталоге) | archived (архив). Новые вакансии создаются как draft.
+    status: str = Field(default="draft", index=True, max_length=16)
+    # Организация из личного кабинета, создавшая вакансию
+    # (для страницы «Список вакансий»).
+    legal_company_id: Optional[int] = Field(
+        default=None, foreign_key="legal_company.id", index=True
+    )
+
     city_id: Optional[int] = Field(default=None, foreign_key="city.id", index=True)
     company_id: Optional[int] = Field(default=None, foreign_key="company.id", index=True)
     # График вахты берётся из справочника schedule.

@@ -9,7 +9,7 @@ from sqlmodel import Session, select
 
 from app.db import get_session
 from app.models import Vacancy
-from app.schemas import VacancyCreate, VacancyListOut, VacancyOut
+from app.schemas import VacancyCreate, VacancyListOut, VacancyOut, VacancyStatusIn
 from app.service import (
     get_or_create_city,
     get_or_create_company,
@@ -32,6 +32,8 @@ def list_vacancies(
     salary_specified: Optional[bool] = Query(None, description="Только вакансии с указанной зарплатой"),
     schedule: Optional[str] = Query(None, description="График вахты из справочника: 15/15, 30/30 … или other"),
     sort: Literal["date", "salary-desc", "salary-asc"] = Query("date", description="Сортировка"),
+    legal_company_id: Optional[int] = Query(None, description="Вакансии организации из личного кабинета"),
+    status: Optional[str] = Query(None, description="Статус для списка компании: draft, published, archived"),
     page: int = Query(1, ge=1, description="Номер страницы"),
     page_size: int = Query(20, ge=1, le=100, description="Размер страницы"),
     session: Session = Depends(get_session),
@@ -44,6 +46,8 @@ def list_vacancies(
         salary_min=salary_min,
         salary_specified=salary_specified,
         schedule=schedule,
+        legal_company_id=legal_company_id,
+        status=status,
     )
 
     total = session.exec(
@@ -84,7 +88,7 @@ def get_vacancy_by_slug(
     v = session.exec(
         select(Vacancy)
         .where(
-            Vacancy.is_active.is_(True),
+            Vacancy.status == "published",
             or_(Vacancy.full_slug == slug, Vacancy.slug == slug),
         )
         .order_by(Vacancy.id)
@@ -100,8 +104,33 @@ def get_vacancy(
     session: Session = Depends(get_session),
 ) -> VacancyOut:
     v = session.get(Vacancy, vacancy_id)
-    if v is None or not v.is_active:
+    if v is None or v.status != "published":
         raise HTTPException(status_code=404, detail="Вакансия не найдена")
+    return to_vacancy_out(v)
+
+
+@router.patch("/{vacancy_id}/status", response_model=VacancyOut, summary="Изменить статус вакансии")
+def set_vacancy_status(
+    vacancy_id: int,
+    payload: VacancyStatusIn,
+    session: Session = Depends(get_session),
+) -> VacancyOut:
+    """Переводит вакансию между вкладками «Списка вакансий» компании.
+
+    draft (не опубликована/черновик) → published (опубликована, видна
+    в каталоге) → archived (архив) и обратно.
+    """
+    allowed = {"draft", "published", "archived"}
+    if payload.status not in allowed:
+        raise HTTPException(status_code=422, detail="Недопустимый статус вакансии")
+
+    v = session.get(Vacancy, vacancy_id)
+    if v is None:
+        raise HTTPException(status_code=404, detail="Вакансия не найдена")
+    v.status = payload.status
+    session.add(v)
+    session.commit()
+    session.refresh(v)
     return to_vacancy_out(v)
 
 
@@ -138,6 +167,9 @@ def create_vacancy(
         title=payload.title,
         slug=title_slug,
         full_slug=full_slug,
+        # Новая вакансия попадает во вкладку «Не опубликованные (Черновик)».
+        status="draft",
+        legal_company_id=payload.legal_company_id,
         salary_from=payload.salary_from,
         salary_to=payload.salary_to,
         salary_hourly_from=payload.salary_hourly_from,

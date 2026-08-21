@@ -8,6 +8,7 @@ import CreateVacancyPage from './pages/CreateVacancyPage';
 import LegalRegistrationPage from './pages/LegalRegistrationPage';
 import LoginPage from './pages/LoginPage';
 import AccountPage from './pages/AccountPage';
+import VacancyListPage from './pages/VacancyListPage';
 import OfferPage from './pages/OfferPage';
 import PrivacyPage from './pages/PrivacyPage';
 
@@ -26,6 +27,8 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         {/* Личный кабинет: данные авторизованного пользователя из сессии */}
         <Route path="/account" element={<AccountPage />} />
+        {/* Список вакансий компании (страница изолирована; API — у личного кабинета) */}
+        <Route path="/company/vacancies" element={<VacancyListPage />} />
         {/* Правовые страницы */}
         <Route path="/offer" element={<OfferPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />

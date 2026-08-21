@@ -18,6 +18,10 @@ class VacancyOut(SQLModel):
     # Полный слаг карточки: транслит названия + '-' + транслит организации.
     # По нему открывается карточка: /vacancy/<full_slug>.
     full_slug: str = ""
+    # Статус: draft | published | archived.
+    status: str = "published"
+    # Организация-владелец из личного кабинета (если задана).
+    legal_company_id: Optional[int] = None
     salary_from: Optional[int] = None
     salary_to: Optional[int] = None
     schedule: str
@@ -70,6 +74,8 @@ class VacancyCreate(SQLModel):
     title: str = ""
     company: Optional[str] = None
     city: str = ""
+    # Организация-владелец из личного кабинета (для страницы «Список вакансий»).
+    legal_company_id: Optional[int] = None
     salary_from: Optional[int] = None
     salary_to: Optional[int] = None
     salary_hourly_from: Optional[int] = None
@@ -133,6 +139,12 @@ class UploadsOut(SQLModel):
     """Результат загрузки файлов: сохранённые пути."""
 
     paths: list[str]
+
+
+class VacancyStatusIn(SQLModel):
+    """Новый статус вакансии (вкладки «Списка вакансий» компании)."""
+
+    status: str = "draft"
 
 
 class CityCount(SQLModel):
