@@ -47,6 +47,62 @@
   margin-bottom: 20px;
 }
 
+/* Выбор типа аккаунта: физическое лицо / юридическое лицо.
+   У каждого типа свой личный кабинет. */
+.login-type {
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-input);
+  padding: 12px 14px;
+  margin: 0 0 18px;
+}
+
+.login-type__legend {
+  padding: 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text-3);
+}
+
+.login-type__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
+  font-size: 14px;
+  color: var(--c-text-2);
+  cursor: pointer;
+  user-select: none;
+}
+.login-type__option:hover { color: var(--c-text); }
+
+.login-type__option input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  border: 1.6px solid #c3cbda;
+  border-radius: 50%;
+  position: relative;
+  cursor: pointer;
+  transition: border-color .12s, background .12s;
+}
+.login-type__option input[type="radio"]:checked {
+  border-color: var(--c-primary);
+  background: var(--c-primary);
+}
+.login-type__option input[type="radio"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+}
+
 /* Поля формы */
 .login-field { margin-bottom: 18px; }
 

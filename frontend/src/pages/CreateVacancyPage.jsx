@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import PreviewModal from '../components/PreviewModal';
 import { createVacancy, fetchCities, uploadPhotos } from '../api.js';
@@ -166,6 +166,13 @@ function PhotoPicker({ title, photos, onChange, limit = MAX_PHOTOS }) {
 }
 
 export default function CreateVacancyPage() {
+  // Форма размещения доступна только организациям (legal). Гостя
+  // отправляем на регистрацию организации, соискателя — в кабинет.
+  const session = loadSession();
+  if (session?.user_type !== 'legal') {
+    return <Navigate to={session ? '/account' : '/register-company'} replace />;
+  }
+
   const navigate = useNavigate();
   const [form, setForm] = useState(EMPTY_FORM);
   const [cities, setCities] = useState([]);
@@ -173,8 +180,7 @@ export default function CreateVacancyPage() {
   const [submitting, setSubmitting] = useState(false);
   // Компания подтягивается из профиля (личного кабинета) — вакансия
   // публикуется от имени организации, зарегистрированной в аккаунте.
-  const [session] = useState(() => loadSession());
-  const companyName = session?.companies?.[0]?.name || '';
+  const companyName = session.companies?.[0]?.name || '';
 
   const words = countWords(form.title);
   const titleOver = words > MAX_TITLE_WORDS;

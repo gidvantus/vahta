@@ -6,6 +6,7 @@ import CatalogPage from './pages/CatalogPage';
 import VacancyPage from './pages/VacancyPage';
 import CreateVacancyPage from './pages/CreateVacancyPage';
 import LegalRegistrationPage from './pages/LegalRegistrationPage';
+import JobSeekerRegistrationPage from './pages/JobSeekerRegistrationPage';
 import LoginPage from './pages/LoginPage';
 import AccountPage from './pages/AccountPage';
 import OfferPage from './pages/OfferPage';
@@ -22,6 +23,8 @@ export default function App() {
         <Route path="/vacancy" element={<Navigate to="/" replace />} />
         {/* Отдельная страница регистрации юрлица — ссылок на неё пока нет */}
         <Route path="/register-company" element={<LegalRegistrationPage />} />
+        {/* Отдельная страница «Регистрация для поиска работы» (физлицо) */}
+        <Route path="/register-jobseeker" element={<JobSeekerRegistrationPage />} />
         {/* Отдельная страница входа: телефон + пароль, сверка с базой */}
         <Route path="/login" element={<LoginPage />} />
         {/* Личный кабинет: данные авторизованного пользователя из сессии */}

@@ -9,6 +9,14 @@ import '../../css/login.css';
 
 const PHONE_MASK_PLACEHOLDER = '+7 (___) ___-__-__';
 
+/* У каждого типа аккаунта свой личный кабинет: физическое лицо
+   («Регистрация для поиска работы») и юридическое лицо (работодатель).
+   Тип выбирается на этой странице и передаётся на сервер (user_type). */
+const ACCOUNT_TYPES = [
+  { value: 'jobseeker', label: 'Физическое лицо — ищу работу' },
+  { value: 'legal', label: 'Юридическое лицо — размещаю вакансии' },
+];
+
 /* Страница входа — отдельная от остальных страниц (свой модуль,
    свой API-слой api/auth.js, свои стили css/login.css). При успехе
    авторизации сохраняет сессию и переадресует на /account, где
@@ -16,6 +24,7 @@ const PHONE_MASK_PLACEHOLDER = '+7 (___) ___-__-__';
 export default function LoginPage() {
   const navigate = useNavigate();
 
+  const [userType, setUserType] = useState('legal');
   const [phoneDigits, setPhoneDigits] = useState('');
   const [password, setPassword] = useState('');
 
@@ -62,9 +71,12 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       // Сервер ищет пользователя по телефону и сверяет пароль с базой.
-      const account = await loginUser({ phone, password });
+      const account = await loginUser({ user_type: userType, phone, password });
       saveSession(account);
-      showToast(`Добро пожаловать, <b>${account.registrant.full_name}</b>`);
+      const name = account.user_type === 'jobseeker'
+        ? account.jobseeker.full_name
+        : account.registrant.full_name;
+      showToast(`Добро пожаловать, <b>${name}</b>`);
       navigate('/account');
     } catch (err) {
       // Ошибки авторизации (пользователь не найден, неверный пароль и т.п.)
@@ -87,6 +99,22 @@ export default function LoginPage() {
           {serverError && <div className="login-banner" role="alert">{serverError}</div>}
 
           <form onSubmit={handleSubmit} noValidate>
+            <fieldset className="login-type">
+              <legend className="login-type__legend">Кто вы?</legend>
+              {ACCOUNT_TYPES.map((t) => (
+                <label className="login-type__option" key={t.value}>
+                  <input
+                    type="radio"
+                    name="user-type"
+                    value={t.value}
+                    checked={userType === t.value}
+                    onChange={() => setUserType(t.value)}
+                  />
+                  <span>{t.label}</span>
+                </label>
+              ))}
+            </fieldset>
+
             <div className="login-field">
               <label className="login-label" htmlFor="login-phone">Телефон</label>
               <input
@@ -129,7 +157,9 @@ export default function LoginPage() {
 
           <p className="login-register">
             Нет аккаунта?{' '}
-            <Link to="/register-company">Зарегистрировать организацию</Link>
+            <Link to="/register-jobseeker">Регистрация для поиска работы</Link>
+            {' · '}
+            <Link to="/register-company">Регистрация организации</Link>
           </p>
         </div>
       </main>

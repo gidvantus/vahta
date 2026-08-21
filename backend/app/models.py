@@ -3,11 +3,12 @@
 Схема БД создаётся миграциями Alembic (backend/alembic/versions).
 Таблицы: company (компания-работодатель), city (город-справочник),
 schedule (справочник графиков вахты), vacancy (вакансия вахтой),
-legal_registrant / legal_company (отдельный модуль регистрации
-юридического лица — не связан с каталогом вакансий).
+legal_registrant / legal_company (регистрация юридического лица),
+jobseeker (регистрация для поиска работы — физическое лицо).
+Отдельные модули регистрации не связаны с каталогом вакансий.
 """
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Optional
 
 from sqlalchemy import JSON, Column, Text
@@ -166,3 +167,36 @@ class LegalCompany(SQLModel, table=True):
     name: str = Field(min_length=2, max_length=200)
     registrant_id: int = Field(foreign_key="legal_registrant.id", index=True)
     created_at: datetime = Field(default_factory=utcnow)
+
+
+class JobSeeker(SQLModel, table=True):
+    """Соискатель (физическое лицо) — отдельный модуль регистрации.
+
+    «Регистрация для поиска работы». Телефон — уникальный ключ.
+    Пароль хранится только в виде хеша (app/security.py), в открытом
+    виде в базе не сохраняется. consent — согласие на обработку
+    персональных данных (обязательное условие регистрации).
+
+    Поля профиля (заполняются и редактируются в личном кабинете):
+    date_of_birth (дата рождения), age (возраст), gender (пол),
+    passport (серия и номер паспорта), citizenship (гражданство),
+    medical_book (медицинская книжка: Да/Нет, необязательное).
+    """
+
+    __tablename__ = "jobseeker"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    full_name: str = Field(min_length=2, max_length=200)
+    # Канонический вид: +7XXXXXXXXXX (12 символов).
+    phone: str = Field(unique=True, index=True, max_length=16)
+    password_hash: str = Field(max_length=256)
+    consent: bool = Field(default=False)
+    created_at: datetime = Field(default_factory=utcnow)
+
+    # --- Профиль (личный кабинет) ---
+    date_of_birth: Optional[date] = Field(default=None)
+    age: Optional[int] = Field(default=None, ge=0, le=130)
+    gender: Optional[str] = Field(default=None, max_length=16)
+    passport: Optional[str] = Field(default=None, max_length=30)
+    citizenship: Optional[str] = Field(default=None, max_length=64)
+    medical_book: Optional[str] = Field(default=None, max_length=16)

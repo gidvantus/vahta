@@ -96,14 +96,17 @@ export default function Header({ query, onQueryChange }) {
           ) : (
             <Link className="login-link" to="/login">Войти</Link>
           )}
-          {/* Разместить вакансию: авторизованным — форма вакансии,
-              неавторизованным — вход в аккаунт */}
-          <Link
-            className="btn btn--primary"
-            to={session ? '/vacancy/new' : '/login'}
-          >
-            Разместить вакансию
-          </Link>
+          {/* Разместить вакансию: организациям (legal) — форма вакансии,
+              гостям — регистрация организации. Соискателям (jobseeker)
+              кнопка не показывается: размещать вакансии им нельзя. */}
+          {session?.user_type !== 'jobseeker' && (
+            <Link
+              className="btn btn--primary"
+              to={session?.user_type === 'legal' ? '/vacancy/new' : '/register-company'}
+            >
+              Разместить вакансию
+            </Link>
+          )}
         </div>
       </div>
     </header>

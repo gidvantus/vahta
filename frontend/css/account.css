@@ -37,10 +37,65 @@
 }
 
 .acc-card__title {
-  margin: 0 0 18px;
+  margin: 0;
   font-size: 17px;
   font-weight: 700;
   color: var(--c-text);
+}
+
+/* Заголовок карточки, не обёрнутый в .acc-card__head (напр. «Данные
+   организации») — держим отступ до содержимого */
+.acc-card > .acc-card__title { margin-bottom: 18px; }
+
+/* Заголовок карточки + кнопки. Кнопки не влияют на высоту строки:
+   позиционируются абсолютно в правом верхнем углу карточки, поэтому
+   между заголовком и полями не появляется лишнего отступа. */
+.acc-card__head {
+  position: relative;
+  margin-bottom: 18px;
+}
+
+/* Место под кнопки справа от заголовка */
+.acc-card__head .acc-card__title {
+  padding-right: 170px;
+}
+
+/* Кнопки «Редактировать» и «Изменить пароль» — вертикальная колонка
+   в правом верхнем углу, вне потока (не растягивает заголовок). */
+.acc-head__actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.acc-edit-btn {
+  padding: 7px 16px;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* Модальное окно смены пароля: узкая колонка поверх общих
+   стилей модалок из create.css (modal-overlay, modal, modal__head…).
+   Селектор из двух классов — иначе правило .modal из create.css
+   (1080px) перебивает ширину из-за одинаковой специфичности. */
+.modal.modal--sm {
+  width: min(340px, 100%);
+}
+
+.acc-modal__field {
+  margin-bottom: 16px;
+}
+
+.acc-modal__label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text);
+  margin-bottom: 7px;
 }
 
 /* Карточка-заглушка: загрузка, ошибка, пустое состояние */
@@ -96,6 +151,57 @@
   overflow-wrap: anywhere;
 }
 
+/* Контрол редактируемого поля (инпут + ошибка под ним) */
+.acc-field__control {
+  min-width: 0;
+}
+
+.acc-input {
+  width: 100%;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-input);
+  padding: 9px 13px;
+  font: inherit;
+  color: var(--c-text);
+  background: #fbfcfe;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.acc-input:focus {
+  outline: 0;
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 3px rgba(5, 111, 241, .12);
+  background: #fff;
+}
+.acc-input::placeholder { color: var(--c-text-3); }
+
+/* Выпадающий список — те же поля, плюс стрелка нативного селекта */
+.acc-select {
+  appearance: auto;
+  -webkit-appearance: auto;
+  cursor: pointer;
+  background-color: #fbfcfe;
+}
+
+/* Обязательное поле */
+.acc-field__req {
+  color: #d93025;
+  margin-left: 2px;
+}
+
+.acc-error {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #b3261e;
+}
+
+.acc-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+.acc-actions .btn { min-width: 140px; }
+.acc-actions .btn:disabled { opacity: .6; cursor: default; }
+
 /* Каждая организация — своим блоком внутри карточки */
 .acc-company {
   border-top: 1px solid var(--c-border-soft);
@@ -108,8 +214,30 @@
   margin-top: 0;
 }
 
+.acc-company__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.acc-company__name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-text);
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 620px) {
   .acc-page { padding: 24px 14px 60px; }
   .acc-card { padding: 20px 18px; }
   .acc-field { grid-template-columns: 1fr; gap: 2px; }
+  /* На узких экранах кнопки уходят из правого угла под заголовок,
+     чтобы не перекрывать его */
+  .acc-card__head .acc-card__title { padding-right: 0; }
+  .acc-head__actions { position: static; align-items: flex-start; }
+  .acc-company__head { flex-wrap: wrap; }
+  .acc-actions .btn { flex: 1 1 auto; min-width: 0; }
 }

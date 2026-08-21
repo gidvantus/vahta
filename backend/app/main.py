@@ -12,7 +12,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
-from app.routers import auth, filters, legal_registration, meta, uploads, vacancies
+from app.routers import (
+    auth,
+    filters,
+    jobseekers,
+    legal_registration,
+    meta,
+    uploads,
+    vacancies,
+)
 
 # Каталог загруженных фото (тот же, что использует роутер uploads).
 # Создаётся до монтирования StaticFiles — каталог должен существовать.
@@ -47,6 +55,7 @@ app.include_router(vacancies.router)
 app.include_router(filters.router)
 app.include_router(meta.router)
 app.include_router(legal_registration.router)
+app.include_router(jobseekers.router)
 app.include_router(auth.router)
 app.include_router(uploads.router)
 

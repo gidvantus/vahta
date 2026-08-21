@@ -1,7 +1,7 @@
 """Pydantic-схемы ответов API (модели чтения) и входные схемы создания."""
 
-from datetime import datetime
-from typing import Optional
+from datetime import date, datetime
+from typing import Literal, Optional
 
 from pydantic import field_validator, model_validator
 from sqlmodel import Field, SQLModel
@@ -174,14 +174,48 @@ class CompanyOut(SQLModel):
 class LoginIn(SQLModel):
     """Входные данные авторизации: телефон и пароль.
 
-    Телефон приводится к каноническому виду +7XXXXXXXXXX и ищется
-    среди зарегистрированных регистраторов (legal_registrant).
-    Пароль сверяется с хешем в базе (app/security.py); ни он сам,
-    ни его хеш в ответ никогда не попадают.
+    user_type — тип аккаунта: jobseeker (физическое лицо, «Регистрация
+    для поиска работы») или legal (юридическое лицо). Телефон
+    приводится к каноническому виду +7XXXXXXXXXX и ищется в таблице
+    соответствующего типа. Пароль сверяется с хешем в базе
+    (app/security.py); ни он сам, ни его хеш в ответ не попадают.
     """
 
+    user_type: Literal["jobseeker", "legal"] = "legal"
     phone: str = Field(max_length=32)
     password: str = Field(max_length=128)
+
+
+class ChangePasswordIn(SQLModel):
+    """Входные данные смены пароля (личный кабинет, модальное окно).
+
+    Пользователь уже авторизован — определяется по типу аккаунта
+    (user_type) и телефону; текущий пароль не требуется. Сессия после
+    смены пароля не сбрасывается. Новый пароль проходит ту же проверку,
+    что при регистрации; в базу попадает только его хеш (app/security.py).
+    """
+
+    user_type: Literal["jobseeker", "legal"] = "legal"
+    phone: str = Field(max_length=32)
+    password: str = Field(max_length=128)
+    password_confirm: str = Field(max_length=128)
+
+
+class JobSeekerRegistrationIn(SQLModel):
+    """Входные данные формы «Регистрация для поиска работы» (физлицо).
+
+    Телефон — уникальный ключ: при совпадении с уже зарегистрированным
+    значением регистрация отклоняется (409). Пароль передаётся только
+    на время запроса: в базе сохраняется его хеш, а не он сам.
+    consent должен быть True — согласие на обработку персональных
+    данных (обязательное условие регистрации).
+    """
+
+    full_name: str = Field(min_length=2, max_length=200)
+    phone: str = Field(max_length=32)
+    password: str = Field(max_length=128)
+    password_confirm: str = Field(max_length=128)
+    consent: bool = False
 
 
 class LegalRegistrationIn(SQLModel):
@@ -201,6 +235,48 @@ class LegalRegistrationIn(SQLModel):
     password: str = Field(max_length=128)
     password_confirm: str = Field(max_length=128)
     consent: bool = False
+
+
+class JobSeekerUpdateIn(SQLModel):
+    """Редактирование данных соискателя (личный кабинет).
+
+    Согласие на обработку персональных данных (consent) не входит
+    в схему — оно не редактируется. Телефон — уникальный ключ,
+    также не меняется (передаётся как есть). Обязательные поля
+    профиля: date_of_birth (в формате ДД.ММ.ГГГГ), age, gender,
+    passport, citizenship. medical_book — необязательное (Да/Нет).
+    """
+
+    full_name: str = Field(min_length=2, max_length=200)
+    phone: str = Field(max_length=32)
+    date_of_birth: str = Field(max_length=10)
+    age: int = Field(ge=0, le=130)
+    gender: str = Field(max_length=16)
+    passport: str = Field(min_length=1, max_length=30)
+    citizenship: str = Field(min_length=1, max_length=64)
+    medical_book: Optional[str] = Field(default=None, max_length=16)
+
+
+class LegalRegistrantUpdateIn(SQLModel):
+    """Редактирование данных регистратора юридического лица.
+
+    Согласие на обработку персональных данных (consent) не входит
+    в схему — оно не редактируется. Телефон — уникальный ключ.
+    """
+
+    full_name: str = Field(min_length=2, max_length=200)
+    phone: str = Field(max_length=32)
+
+
+class LegalCompanyUpdateIn(SQLModel):
+    """Редактирование данных организации (личный кабинет).
+
+    ИНН — уникальный ключ: при совпадении с уже зарегистрированным
+    значением изменение отклоняется (409).
+    """
+
+    name: str = Field(min_length=2, max_length=200)
+    inn: str = Field(min_length=10, max_length=10)
 
 
 class LegalRegistrationOut(SQLModel):
@@ -236,8 +312,37 @@ class LegalCompanyOut(SQLModel):
     created_at: datetime
 
 
-class LegalAccountOut(SQLModel):
-    """Данные личного кабинета: регистратор и его организации."""
+class JobSeekerOut(SQLModel):
+    """Данные соискателя (физлицо) для личного кабинета.
 
-    registrant: LegalRegistrantOut
-    companies: list[LegalCompanyOut]
+    Пароль и его хеш (password_hash) никогда не включаются в ответ.
+    """
+
+    id: int
+    full_name: str
+    phone: str
+    consent: bool
+    created_at: datetime
+
+    # Поля профиля (личный кабинет).
+    date_of_birth: Optional[date] = None
+    age: Optional[int] = None
+    gender: Optional[str] = None
+    passport: Optional[str] = None
+    citizenship: Optional[str] = None
+    medical_book: Optional[str] = None
+
+
+class AccountOut(SQLModel):
+    """Данные личного кабинета в зависимости от типа аккаунта.
+
+    user_type=legal — заполнены registrant и companies
+    (регистратор юридического лица и его организации);
+    user_type=jobseeker — заполнен jobseeker (физическое лицо,
+    «Регистрация для поиска работы»). Заполнена только одна ветка.
+    """
+
+    user_type: Literal["jobseeker", "legal"]
+    registrant: Optional[LegalRegistrantOut] = None
+    companies: list[LegalCompanyOut] = []
+    jobseeker: Optional[JobSeekerOut] = None
