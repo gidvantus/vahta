@@ -1,8 +1,7 @@
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import Header from '../components/Header';
-import { clearSession, loadSession } from '../lib/auth.js';
+import { loadSession } from '../lib/auth.js';
 import { formatPhoneDigits } from '../lib/legal.js';
-import { showToast } from '../lib/toast.js';
 import '../../css/account.css';
 
 /* Телефон из базы хранится в каноническом виде +7XXXXXXXXXX —
@@ -40,17 +39,10 @@ function Field({ label, value }) {
    что он указал при регистрации (сохранены в сессии при входе).
    Без авторизации страница недоступна: перенаправляет на /login. */
 export default function AccountPage() {
-  const navigate = useNavigate();
   const data = loadSession();
 
   if (data === null) {
     return <Navigate to="/login" replace />;
-  }
-
-  function handleLogout() {
-    clearSession();
-    showToast('Вы вышли из личного кабинета');
-    navigate('/');
   }
 
   return (
@@ -59,17 +51,10 @@ export default function AccountPage() {
 
       <main className="acc-page">
         <div className="acc-container">
-          <div className="acc-head">
-            <div>
-              <h1 className="acc-title">Личный кабинет</h1>
-              <p className="acc-subtitle">
-                Данные, которые вы указали при регистрации организации
-              </p>
-            </div>
-            <button className="btn btn--ghost" type="button" onClick={handleLogout}>
-              Выйти
-            </button>
-          </div>
+          <h1 className="acc-title">Личный кабинет</h1>
+          <p className="acc-subtitle">
+            Данные, которые вы указали при регистрации организации
+          </p>
 
           <section className="acc-card" aria-labelledby="acc-user-title">
             <h2 className="acc-card__title" id="acc-user-title">
@@ -114,10 +99,6 @@ export default function AccountPage() {
               ))
             )}
           </section>
-
-          <p className="acc-empty">
-            <Link to="/register-company">Зарегистрировать ещё одну организацию</Link>
-          </p>
         </div>
       </main>
     </>

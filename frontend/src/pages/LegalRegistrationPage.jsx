@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { registerLegalCompany } from '../api/legal.js';
+import { isAuthenticated } from '../lib/auth.js';
 import {
   digitsFromPhoneRaw,
   formatPhoneDigits,
@@ -33,6 +34,12 @@ export default function LegalRegistrationPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const phone = formatPhoneDigits(phoneDigits);
+
+  // Уже авторизован — регистрация недоступна, перенаправляем
+  // в личный кабинет (у пользователя уже есть аккаунт).
+  if (isAuthenticated()) {
+    return <Navigate to="/account" replace />;
+  }
 
   function validate() {
     const e = {};
