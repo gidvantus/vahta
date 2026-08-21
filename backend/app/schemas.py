@@ -267,6 +267,7 @@ class JobSeekerUpdateIn(SQLModel):
     passport: str = Field(min_length=1, max_length=30)
     citizenship: str = Field(min_length=1, max_length=64)
     medical_book: Optional[str] = Field(default=None, max_length=16)
+    photo: Optional[str] = Field(default=None, max_length=500)
 
 
 class LegalRegistrantUpdateIn(SQLModel):
@@ -343,6 +344,7 @@ class JobSeekerOut(SQLModel):
     passport: Optional[str] = None
     citizenship: Optional[str] = None
     medical_book: Optional[str] = None
+    photo: Optional[str] = None
 
 
 class AccountOut(SQLModel):
@@ -358,3 +360,98 @@ class AccountOut(SQLModel):
     registrant: Optional[LegalRegistrantOut] = None
     companies: list[LegalCompanyOut] = []
     jobseeker: Optional[JobSeekerOut] = None
+
+
+class ApplicationCreate(SQLModel):
+    """Отклик вахтовика на вакансию."""
+
+    vacancy_id: int
+    jobseeker_id: int
+
+
+class ApplicationVacancyOut(SQLModel):
+    """Вакансия внутри отклика — для списков компании и вахтовика."""
+
+    id: int
+    title: str
+    full_slug: str = ""
+    city: str = ""
+    company: str = ""
+
+
+class ApplicationJobSeekerOut(SQLModel):
+    """Вахтовик внутри отклика — ФИО и телефон."""
+
+    id: int
+    full_name: str
+    phone: str
+
+
+class ApplicationOut(SQLModel):
+    """Отклик в списках компании и вахтовика."""
+
+    id: int
+    created_at: datetime
+    status: str = "pending"
+    decision_reason: Optional[str] = None
+    decided_at: Optional[datetime] = None
+    vacancy: ApplicationVacancyOut
+    jobseeker: ApplicationJobSeekerOut
+    previously_blocked: bool = False
+    last_block_reason: Optional[str] = None
+    work_status: str = "none"
+    arrival_confirmed: bool = False
+    start_confirmed: bool = False
+    finish_confirmed: bool = False
+    finish_reject_kind: Optional[str] = None
+    finish_reject_reason: Optional[str] = None
+
+
+class ApplicationDecisionIn(SQLModel):
+    """Решение работодателя по отклику: принять, отклонить, заблокировать."""
+
+    action: Literal["accepted", "rejected", "blocked"]
+    reason: Optional[str] = None
+    legal_company_id: int
+
+
+class ApplicationUnblockIn(SQLModel):
+    """Разблокировка вахтовика компанией."""
+
+    legal_company_id: int
+
+
+class ApplicationWorkIn(SQLModel):
+    """Вахтовик: выехал / вышел на работу."""
+
+    action: Literal["departed", "started", "finished"]
+    jobseeker_id: int
+
+
+class ApplicationWorkConfirmIn(SQLModel):
+    """Компания: подтвердить приезд или выход на работу."""
+
+    action: Literal["arrival", "start", "finish"]
+    legal_company_id: int
+
+
+class ApplicationFinishRejectIn(SQLModel):
+    """Отказ компании в завершении работы."""
+
+    kind: Literal["incomplete", "wont_continue"]
+    reason: str
+    legal_company_id: int
+
+
+class FavoriteCreate(SQLModel):
+    """Добавить вакансию в избранное."""
+
+    vacancy_id: int
+    jobseeker_id: int
+
+
+class FavoriteIdsOut(SQLModel):
+    """Идентификаторы избранных вакансий."""
+
+    ids: list[int]
+

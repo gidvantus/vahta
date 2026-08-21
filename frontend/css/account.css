@@ -13,22 +13,194 @@
   margin: 0 auto;
 }
 
-/* У юрлица контейнер шире: слева данные, справа меню вакансий */
+/* У юрлица контейнер шире: слева колонка компании, справа контент */
 .acc-container--wide {
-  max-width: 1060px;
+  max-width: var(--container);
 }
 
-/* Двухколоночная раскладка: карточки + сайдбар меню */
+.acc-published__title {
+  margin: 0 0 16px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+/* Опубликованные вакансии в кабинете: сетка карточек одной высоты */
+.acc-published .vacancy-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  align-items: stretch;
+}
+
+.acc-published .vacancy-card {
+  height: 100%;
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding: 14px 14px 16px;
+}
+
+.acc-published .vacancy-card__company {
+  width: 100%;
+  justify-content: flex-start;
+  align-items: center;
+  padding-top: 0;
+}
+
+.acc-published .vacancy-card__company img,
+.acc-published .vacancy-card__logo-fallback {
+  width: 48px;
+  height: 48px;
+  padding: 6px;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.acc-published .vacancy-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.acc-published .vacancy-card__top {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.acc-published .vacancy-card__title {
+  font-size: 15px;
+  line-height: 1.3;
+  min-height: calc(1.3em * 2);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.acc-published .vacancy-card__date {
+  margin-top: 0;
+}
+
+.acc-published .vacancy-card__salary {
+  margin-top: 8px;
+  font-size: 15px;
+  min-height: 1.3em;
+}
+
+.acc-published .vacancy-card__meta {
+  font-size: 13px;
+  gap: 6px 10px;
+  min-height: 22px;
+}
+
+.acc-published .vacancy-card__company-line {
+  font-size: 13px;
+  margin-top: auto;
+  padding-top: 8px;
+  min-width: 0;
+}
+
+.acc-published .vacancy-card__company-line b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.acc-published .vacancy-card__notice {
+  margin-top: 8px;
+}
+
+.acc-published .vacancy-card__actions {
+  width: 100%;
+  margin-top: 2px;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.acc-published .vacancy-card__actions .btn,
+.acc-published .vacancy-card__actions .btn-fav {
+  width: 100%;
+  justify-content: center;
+  padding: 8px 12px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.vacancy-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.vacancy-pager__pages {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vacancy-pager__num {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-btn);
+  background: var(--c-card);
+  color: var(--c-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.vacancy-pager__num:hover {
+  border-color: var(--c-primary);
+  color: var(--c-primary);
+}
+
+.vacancy-pager__num.is-active {
+  background: var(--c-primary-dark);
+  border-color: var(--c-primary-dark);
+  color: #fff;
+}
+
+.vacancy-pager__ellipsis {
+  color: var(--c-text-3);
+  padding: 0 4px;
+}
+
+.vacancy-pager .btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Двухколоночная раскладка: навигация компании + основная область */
 .acc-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: 292px minmax(0, 1fr);
   gap: 20px;
   align-items: start;
 }
 
-.acc-layout__main {
-  min-width: 0;
+.acc-status {
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.4;
 }
+.acc-status--pending { color: var(--c-text-2); font-weight: 500; }
+.acc-status--accepted { color: #128a4f; }
+.acc-status--rejected,
+.acc-status--blocked { color: #b3261e; }
+.acc-status--was-blocked { color: #9a5b00; }
 
 .acc-layout__side {
   display: flex;
@@ -36,16 +208,115 @@
   gap: 20px;
 }
 
-/* Меню в сайдбаре: плитка и кнопка друг под другом на всю ширину */
-.acc-layout__side .acc-menu__row {
+.acc-layout__side .filters {
+  position: static;
+  width: 100%;
+}
+
+/* Левая колонка: логотип, название компании, кнопки вакансий */
+.acc-nav {
+  background: var(--c-card);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 20px 18px;
+}
+
+.acc-nav__brand {
+  display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.acc-nav__profile {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-primary);
+  text-decoration: none;
+}
+.acc-nav__profile:hover {
+  text-decoration: underline;
+}
+
+.acc-nav__logo,
+.acc-nav__logo-fallback {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 1px solid #ccd4e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.acc-nav__logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+  padding: 8px;
+}
+
+.acc-nav__photo,
+.acc-nav__photo-fallback {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  border: 1px solid #ccd4e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: var(--c-primary-soft);
+  color: var(--c-primary);
+}
+
+.acc-nav__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.acc-nav__photo-fallback svg {
+  width: 44px;
+  height: 44px;
+}
+
+.acc-nav__logo-fallback {
+  background: var(--c-primary-soft);
+  color: var(--c-primary);
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.acc-nav__name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-text);
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
+.acc-nav__actions {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
-.acc-layout__side .acc-menu__btn {
+.acc-nav__btn {
   width: 100%;
   text-align: center;
+  justify-content: center;
+}
+
+.acc-nav__btn.is-active {
+  box-shadow: 0 0 0 2px rgba(5, 111, 241, .18);
 }
 
 .acc-title {
@@ -121,45 +392,20 @@
   width: min(340px, 100%);
 }
 
-/* Меню «Работа с вакансиями» (только кабинет юрлица) */
-.acc-menu__row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
+.modal.modal--finish {
+  width: min(440px, 100%);
 }
 
-/* Плитка «Список вакансий» — компактная, без «серой» заливки */
-.acc-menu__item {
-  display: flex;
+.modal__foot--stack {
   flex-direction: column;
-  gap: 2px;
-  border: 1px solid var(--c-border);
-  border-radius: 10px;
-  padding: 10px 12px;
-  background: var(--c-card);
-  transition: border-color .15s, box-shadow .15s;
-}
-.acc-menu__item:hover {
-  border-color: var(--c-primary);
-  box-shadow: none;
-  text-decoration: none;
+  align-items: stretch;
 }
 
-.acc-menu__item-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--c-text);
-}
-
-.acc-menu__item-desc {
-  font-size: 12px;
-  color: var(--c-text-3);
-}
-
-.acc-menu__btn {
-  flex-shrink: 0;
-  padding: 10px 16px;
+.modal__foot--stack .btn {
+  width: 100%;
+  justify-content: center;
+  white-space: normal;
+  min-width: 0;
 }
 
 .acc-modal__field {
@@ -232,6 +478,46 @@
   min-width: 0;
 }
 
+.acc-field:has(.acc-avatar-preview),
+.acc-field:has(.acc-avatar-picker) {
+  align-items: center;
+}
+
+.acc-avatar-picker {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.acc-avatar-picker__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.acc-avatar-preview {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #ccd4e0;
+  background: var(--c-primary-soft);
+  display: block;
+}
+
+.acc-avatar-preview--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-3);
+  text-align: center;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
 .acc-input {
   width: 100%;
   border: 1px solid var(--c-border);
@@ -249,6 +535,16 @@
   background: #fff;
 }
 .acc-input::placeholder { color: var(--c-text-3); }
+.acc-input--readonly {
+  background: #f4f6fa;
+  color: var(--c-text);
+  cursor: default;
+}
+.acc-input--readonly:focus {
+  border-color: var(--c-border);
+  box-shadow: none;
+  background: #f4f6fa;
+}
 
 /* Выпадающий список — те же поля, плюс стрелка нативного селекта */
 .acc-select {
@@ -307,14 +603,20 @@
 }
 
 /* На планшетах/узких окнах сайдбар уходит под карточки */
+@media (max-width: 1100px) {
+  .acc-published .vacancy-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 @media (max-width: 940px) {
   .acc-layout { grid-template-columns: 1fr; }
+  .acc-nav__brand { flex-direction: row; flex-wrap: wrap; text-align: left; }
 }
 
 @media (max-width: 620px) {
   .acc-page { padding: 24px 14px 60px; }
   .acc-card { padding: 20px 18px; }
   .acc-field { grid-template-columns: 1fr; gap: 2px; }
+  .acc-published .vacancy-list { grid-template-columns: 1fr; }
   /* На узких экранах кнопки уходят из правого угла под заголовок,
      чтобы не перекрывать его */
   .acc-card__head .acc-card__title { padding-right: 0; }

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { fetchVacancies, fetchFilters } from '../api.js';
+import { loadSession } from '../lib/auth.js';
+import { useFavoriteSet } from '../lib/favorites.js';
 import { plural } from '../lib/format.js';
 import Header from '../components/Header';
 import FilterSidebar from '../components/FilterSidebar';
@@ -30,6 +32,7 @@ export default function CatalogPage() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('loading'); // loading | error | ready
   const [loadingMore, setLoadingMore] = useState(false);
+  const { ids: favoriteIds, setFavorite } = useFavoriteSet();
 
   useEffect(() => {
     document.title = 'Каталог вакансий — Вахта.ру';
@@ -49,7 +52,9 @@ export default function CatalogPage() {
     let alive = true;
     setStatus('loading');
     const t = setTimeout(() => {
-      fetchVacancies(state, 1, PAGE_SIZE)
+      fetchVacancies(state, 1, PAGE_SIZE, {
+        jobseekerId: loadSession()?.jobseeker?.id,
+      })
         .then((r) => {
           if (!alive) return;
           setItems(r.items);
@@ -87,7 +92,9 @@ export default function CatalogPage() {
   function loadMore() {
     const next = page + 1;
     setLoadingMore(true);
-    fetchVacancies(state, next, PAGE_SIZE)
+    fetchVacancies(state, next, PAGE_SIZE, {
+      jobseekerId: loadSession()?.jobseeker?.id,
+    })
       .then((r) => {
         setItems((prev) => [...prev, ...r.items]);
         setTotal(r.total);
@@ -149,7 +156,14 @@ export default function CatalogPage() {
           {status === 'ready' && items.length > 0 && (
             <>
               <div className="vacancy-list">
-                {items.map((v) => <VacancyCard key={v.id} vacancy={v} />)}
+                {items.map((v) => (
+                  <VacancyCard
+                    key={v.id}
+                    vacancy={v}
+                    favorited={favoriteIds.has(v.id)}
+                    onFavoriteChange={setFavorite}
+                  />
+                ))}
               </div>
               {items.length < total && (
                 <div className="load-more">

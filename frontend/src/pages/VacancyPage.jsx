@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { fetchVacancyBySlug } from '../api.js';
 import Header from '../components/Header';
 import VacancyView from '../components/VacancyView';
+import { loadSession } from '../lib/auth.js';
 import '../../css/vacancy.css';
 
 export default function VacancyPage() {
   const { slug } = useParams();
+  const navigate = useNavigate();
+  const isJobseeker = loadSession()?.user_type === 'jobseeker';
   const [status, setStatus] = useState('loading'); // loading | ready | error
   const [vacancy, setVacancy] = useState(null);
   const [error, setError] = useState('');
@@ -15,7 +18,8 @@ export default function VacancyPage() {
     let alive = true;
     setStatus('loading');
     setVacancy(null);
-    fetchVacancyBySlug(slug)
+    const jobseekerId = loadSession()?.jobseeker?.id;
+    fetchVacancyBySlug(slug, { jobseekerId })
       .then((v) => {
         if (!alive) return;
         setVacancy(v);
@@ -37,10 +41,20 @@ export default function VacancyPage() {
   const netError = /failed to fetch|networkerror|load failed/i.test(error);
   const errorText = netError ? 'Проверьте соединение с сервером и попробуйте ещё раз.' : error;
 
+  function handleBack() {
+    if (window.history.length > 1) navigate(-1);
+    else navigate('/jobseeker/vacancies');
+  }
+
   return (
     <>
       <Header />
       <main className="vacancy-page container">
+        {isJobseeker && (
+          <button className="btn btn--ghost vacancy-back" type="button" onClick={handleBack}>
+            ← Назад
+          </button>
+        )}
         <nav className="breadcrumbs" aria-label="Хлебные крошки">
           <a href="/">Главная</a>
           <span className="sep">/</span>
