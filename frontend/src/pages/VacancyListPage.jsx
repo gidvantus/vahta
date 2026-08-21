@@ -117,6 +117,12 @@ export default function VacancyListPage() {
     return <Navigate to="/login" replace />;
   }
 
+  // Страница доступна только организациям (legal): соискателя
+  // (физическое лицо) перенаправляем в его личный кабинет.
+  if (session?.user_type !== 'legal') {
+    return <Navigate to="/account" replace />;
+  }
+
   function changeStatus(vacancy, next) {
     setBusy(true);
     updateVacancyStatus(vacancy.id, next)
@@ -139,15 +145,18 @@ export default function VacancyListPage() {
     <>
       <Header />
 
-      <main className="cabinet container">
+      <main className="cabinet">
+        <nav className="cabinet-breadcrumbs" aria-label="Хлебные крошки">
+          <Link to="/">Главная</Link>
+          <span className="cabinet-breadcrumbs__sep" aria-hidden="true">/</span>
+          <Link to="/account">Личный кабинет</Link>
+          <span className="cabinet-breadcrumbs__sep" aria-hidden="true">/</span>
+          <span className="cabinet-breadcrumbs__current" aria-current="page">Список вакансий</span>
+        </nav>
+
         <div className="cabinet-head">
-          <div>
-            <h1>Список вакансий</h1>
-            <p className="cabinet-sub">{company ? company.name : 'Организация не найдена'}</p>
-          </div>
-          <div className="cabinet-head__actions">
-            <Link className="btn btn--primary" to="/vacancy/new">Создать вакансию</Link>
-          </div>
+          <h1>Список вакансий</h1>
+          <p className="cabinet-sub">{company ? company.name : 'Организация не найдена'}</p>
         </div>
 
         {!company && (
@@ -179,6 +188,12 @@ export default function VacancyListPage() {
             </div>
 
             <section className="cabinet-list" aria-label={activeTab ? activeTab.label : 'Список вакансий'}>
+              {tab === 'draft' && (
+                <div className="cabinet-tab-toolbar">
+                  <Link className="btn btn--primary" to="/vacancy/new">Разместить вакансию</Link>
+                </div>
+              )}
+
               {state === 'loading' && (
                 <div className="empty-state">
                   <h3>Загружаем вакансии…</h3>
@@ -200,9 +215,6 @@ export default function VacancyListPage() {
                   )}
                   {tab === 'published' && (
                     <p>Опубликуйте вакансию из вкладки «Не опубликованные (Черновик)».</p>
-                  )}
-                  {tab !== 'draft' && (
-                    <Link className="btn btn--ghost" to="/vacancy/new">Создать вакансию</Link>
                   )}
                 </div>
               )}

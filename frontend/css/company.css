@@ -3,30 +3,52 @@
    Вкладки статусов и список вакансий организации
    ========================================================================== */
 
-.cabinet { padding: 28px 24px 64px; }
+/* Кабинет — самостоятельная колонка на весь экран под шапкой: max-width
+   и паддинги заданы здесь же, чтобы их не перебивал общий .container
+   (в собранном CSS он идёт позже и выигрывает по каскаду). Минимальная
+   высота = экран минус шапка: даже без данных страница не «сжимается». */
+.cabinet {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+  min-height: calc(100vh - var(--header-h));
+  display: flex;
+  flex-direction: column;
+}
+
+/* --------------------------- Хлебные крошки ----------------------------- */
+
+.cabinet-breadcrumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 13.5px;
+  color: var(--c-text-3);
+  margin-bottom: 14px;
+}
+.cabinet-breadcrumbs a { color: var(--c-text-3); }
+.cabinet-breadcrumbs a:hover { color: var(--c-primary); text-decoration: none; }
+.cabinet-breadcrumbs__sep { color: var(--c-border); }
+.cabinet-breadcrumbs__current { color: var(--c-text-2); font-weight: 600; }
 
 /* ------------------------------ Шапка списка ---------------------------- */
 
-.cabinet-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-bottom: 22px;
-}
+.cabinet-head { flex-shrink: 0; margin-bottom: 22px; }
 .cabinet-head h1 { margin: 0 0 6px; font-size: 26px; font-weight: 700; color: var(--c-text); }
 .cabinet-sub { margin: 0; color: var(--c-text-2); font-size: 15px; font-weight: 600; }
-.cabinet-head__actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
 /* ------------------------------- Вкладки -------------------------------- */
 
+/* Вкладки переносятся на новую строку, а не прокручиваются
+   горизонтально — колесо прокрутки не появляется. */
 .cabinet-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   border-bottom: 2px solid var(--c-border);
   margin-bottom: 18px;
-  overflow-x: auto;
+  flex-shrink: 0;
 }
 .cabinet-tab {
   display: inline-flex;
@@ -59,6 +81,21 @@
 .cabinet-tab.is-active .cabinet-tab__count { background: var(--c-primary-soft); color: var(--c-primary); }
 
 /* --------------------------- Список вакансий ---------------------------- */
+
+/* Панель действий над списком вкладки (кнопка «Разместить вакансию»). */
+.cabinet-tab-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  margin-bottom: 14px;
+}
+
+/* Список занимает весь оставшийся под вкладками экран. */
+.cabinet-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
 
 .cabinet-rows { display: flex; flex-direction: column; gap: 12px; }
 
@@ -93,12 +130,21 @@
 .cabinet-row__actions { display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
 .cabinet-row__actions .btn { padding: 8px 14px; font-size: 13.5px; }
 
+/* Пустое состояние растягивается на всю оставшуюся высоту
+   и центрируется по вертикали — «карточка» на весь экран. */
+.cabinet-list .empty-state,
+.cabinet > .empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ------------------------------ Адаптивность ---------------------------- */
 
 @media (max-width: 720px) {
   .cabinet { padding: 20px 14px 48px; }
   .cabinet-row { flex-direction: column; align-items: stretch; }
   .cabinet-row__actions { justify-content: flex-end; }
-  .cabinet-head__actions { width: 100%; }
-  .cabinet-head__actions .btn { flex: 1 1 auto; }
 }

@@ -13,6 +13,41 @@
   margin: 0 auto;
 }
 
+/* У юрлица контейнер шире: слева данные, справа меню вакансий */
+.acc-container--wide {
+  max-width: 1060px;
+}
+
+/* Двухколоночная раскладка: карточки + сайдбар меню */
+.acc-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 20px;
+  align-items: start;
+}
+
+.acc-layout__main {
+  min-width: 0;
+}
+
+.acc-layout__side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Меню в сайдбаре: плитка и кнопка друг под другом на всю ширину */
+.acc-layout__side .acc-menu__row {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.acc-layout__side .acc-menu__btn {
+  width: 100%;
+  text-align: center;
+}
+
 .acc-title {
   margin: 0 0 6px;
   font-size: 26px;
@@ -84,6 +119,47 @@
    (1080px) перебивает ширину из-за одинаковой специфичности. */
 .modal.modal--sm {
   width: min(340px, 100%);
+}
+
+/* Меню «Работа с вакансиями» (только кабинет юрлица) */
+.acc-menu__row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Плитка «Список вакансий» — компактная, без «серой» заливки */
+.acc-menu__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--c-card);
+  transition: border-color .15s, box-shadow .15s;
+}
+.acc-menu__item:hover {
+  border-color: var(--c-primary);
+  box-shadow: none;
+  text-decoration: none;
+}
+
+.acc-menu__item-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+.acc-menu__item-desc {
+  font-size: 12px;
+  color: var(--c-text-3);
+}
+
+.acc-menu__btn {
+  flex-shrink: 0;
+  padding: 10px 16px;
 }
 
 .acc-modal__field {
@@ -228,6 +304,11 @@
   font-weight: 700;
   color: var(--c-text);
   overflow-wrap: anywhere;
+}
+
+/* На планшетах/узких окнах сайдбар уходит под карточки */
+@media (max-width: 940px) {
+  .acc-layout { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 620px) {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import Header from '../components/Header';
 import ChangePasswordModal from '../components/ChangePasswordModal';
 import { loadSession, saveSession } from '../lib/auth.js';
@@ -241,7 +241,7 @@ export default function AccountPage() {
       <Header />
 
       <main className="acc-page">
-        <div className="acc-container">
+        <div className={isJobseeker ? 'acc-container' : 'acc-container acc-container--wide'}>
           <h1 className="acc-title">Личный кабинет</h1>
           <p className="acc-subtitle">
             {isJobseeker
@@ -249,8 +249,10 @@ export default function AccountPage() {
               : 'Данные, которые вы указали при регистрации организации'}
           </p>
 
-          {/* Данные пользователя (общие для обоих типов) */}
-          <section className="acc-card" aria-labelledby="acc-user-title">
+          <div className={isJobseeker ? '' : 'acc-layout'}>
+            <div className={isJobseeker ? '' : 'acc-layout__main'}>
+              {/* Данные пользователя (общие для обоих типов) */}
+              <section className="acc-card" aria-labelledby="acc-user-title">
             <div className="acc-card__head">
               <h2 className="acc-card__title" id="acc-user-title">
                 Данные пользователя
@@ -502,6 +504,28 @@ export default function AccountPage() {
               )}
             </section>
           )}
+            </div>
+
+            {/* Меню «Работа с вакансиями» — только у юридического лица */}
+            {!isJobseeker && (
+              <aside className="acc-layout__side">
+                <nav className="acc-card acc-menu" aria-label="Работа с вакансиями">
+                  <h2 className="acc-card__title">Работа с вакансиями</h2>
+                  <div className="acc-menu__row">
+                    <Link className="acc-menu__item" to="/company/vacancies">
+                      <span className="acc-menu__item-title">Список вакансий</span>
+                      <span className="acc-menu__item-desc">
+                        Опубликованные, черновики и архив
+                      </span>
+                    </Link>
+                    <Link className="btn btn--primary acc-menu__btn" to="/vacancy/new">
+                      Разместить вакансию
+                    </Link>
+                  </div>
+                </nav>
+              </aside>
+            )}
+          </div>
         </div>
       </main>
 
