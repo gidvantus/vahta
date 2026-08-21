@@ -196,6 +196,8 @@ def seed_if_empty() -> int:
                 title=title,
                 slug=slug,
                 full_slug=full_slug,
+                # Демо-вакансии опубликованы (видны в каталоге).
+                status="published",
                 salary_from=s_from,
                 salary_to=s_to,
                 city_id=city.id,

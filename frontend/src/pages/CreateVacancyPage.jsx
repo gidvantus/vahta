@@ -180,7 +180,9 @@ export default function CreateVacancyPage() {
   const [submitting, setSubmitting] = useState(false);
   // Компания подтягивается из профиля (личного кабинета) — вакансия
   // публикуется от имени организации, зарегистрированной в аккаунте.
-  const companyName = session.companies?.[0]?.name || '';
+  const company = session?.companies?.[0] || null;
+  const companyName = company?.name || '';
+  const legalCompanyId = company?.id || null;
 
   const words = countWords(form.title);
   const titleOver = words > MAX_TITLE_WORDS;
@@ -282,6 +284,7 @@ export default function CreateVacancyPage() {
       const payload = {
         title: form.title.trim(),
         company: companyName || null,
+        legal_company_id: legalCompanyId,
         city: form.city.trim(),
         salary_from: toInt(form.salary_from),
         salary_to: toInt(form.salary_to),

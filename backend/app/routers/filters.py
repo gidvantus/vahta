@@ -22,7 +22,10 @@ def get_filters(session: Session = Depends(get_session)) -> FiltersOut:
     # --- Города из справочника: имя + флаг is_main + число активных вакансий ---
     city_rows = session.exec(
         select(City.name, City.is_main, func.count(Vacancy.id))
-        .outerjoin(Vacancy, (Vacancy.city_id == City.id) & Vacancy.is_active.is_(True))
+        .outerjoin(
+            Vacancy,
+            (Vacancy.city_id == City.id) & (Vacancy.status == "published"),
+        )
         .group_by(City.name, City.is_main)
         .order_by(func.count(Vacancy.id).desc(), City.name)
     ).all()
@@ -36,7 +39,7 @@ def get_filters(session: Session = Depends(get_session)) -> FiltersOut:
         select(Schedule.value, Schedule.label, Schedule.sort_order, func.count(Vacancy.id))
         .outerjoin(
             Vacancy,
-            (Vacancy.schedule_id == Schedule.id) & Vacancy.is_active.is_(True),
+            (Vacancy.schedule_id == Schedule.id) & (Vacancy.status == "published"),
         )
         .group_by(Schedule.value, Schedule.label, Schedule.sort_order)
         .order_by(Schedule.sort_order)
@@ -51,13 +54,13 @@ def get_filters(session: Session = Depends(get_session)) -> FiltersOut:
     other = session.exec(
         select(func.count())
         .select_from(Vacancy)
-        .where(Vacancy.is_active.is_(True), Vacancy.schedule_id.is_(None))
+        .where(Vacancy.status == "published", Vacancy.schedule_id.is_(None))
     ).one()
     schedules.append(ScheduleCount(value="other", label="Другой", count=other))
 
     # --- Зарплата: считаем по фактическому распределению salary_from ---
     salaries = session.exec(
-        select(Vacancy.salary_from).where(Vacancy.is_active.is_(True))
+        select(Vacancy.salary_from).where(Vacancy.status == "published")
     ).all()
     total = len(salaries)
 

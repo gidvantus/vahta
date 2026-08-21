@@ -47,14 +47,27 @@ def vacancy_conditions(
     salary_min: Optional[int] = None,
     salary_specified: Optional[bool] = None,
     schedule: Optional[str] = None,
+    legal_company_id: Optional[int] = None,
+    status: Optional[str] = None,
 ) -> list:
-    """SQL-условия для выборки вакансий (активные + фильтры).
+    """SQL-условия для выборки вакансий.
+
+    Каталог: только опубликованные (status = published).
+    Страница «Список вакансий» компании (legal_company_id задан):
+    вакансии организации — по статусу (или все, если статус не указан).
 
     Требует, чтобы к запросу были присоединены city, company
     (для текстового поиска по городу и компании) и schedule_ref
     (для поиска/фильтра по графику вахты).
     """
-    conds = [Vacancy.is_active.is_(True)]
+    if legal_company_id is not None:
+        # Список компании: вакансии владельца по вкладке (или все).
+        conds = [Vacancy.legal_company_id == legal_company_id]
+        if status:
+            conds.append(Vacancy.status == status)
+    else:
+        # Каталог: только опубликованные вакансии.
+        conds = [Vacancy.status == "published"]
 
     if q:
         like = f"%{q.strip().lower()}%"
@@ -170,6 +183,8 @@ def to_vacancy_out(v: Vacancy) -> VacancyOut:
             v.slug or translit_slug(v.title),
             v.company.slug if v.company else None,
         ),
+        status=v.status,
+        legal_company_id=v.legal_company_id,
         salary_from=v.salary_from,
         salary_to=v.salary_to,
         schedule=v.schedule_ref.value if v.schedule_ref else "",
