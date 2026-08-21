@@ -11,7 +11,7 @@ from uuid import uuid4
 from sqlalchemy import func, or_
 from sqlmodel import Session, select
 
-from app.models import City, Company, Schedule, Vacancy
+from app.models import City, Company, CompanyJobseekerBlock, Schedule, Vacancy
 from app.schemas import VacancyOut
 from app.translit import translit_slug
 
@@ -41,6 +41,32 @@ SALARY_OPTIONS = (
 )
 
 
+def blocked_company_ids(session: Session, jobseeker_id: int) -> list[int]:
+    """Организации, которые заблокировали этого вахтовика."""
+    rows = session.exec(
+        select(CompanyJobseekerBlock.legal_company_id).where(
+            CompanyJobseekerBlock.jobseeker_id == jobseeker_id,
+            CompanyJobseekerBlock.is_active.is_(True),
+        )
+    ).all()
+    return list(rows)
+
+
+def is_jobseeker_blocked(session: Session, jobseeker_id: int, legal_company_id: Optional[int]) -> bool:
+    if legal_company_id is None:
+        return False
+    return (
+        session.exec(
+            select(CompanyJobseekerBlock.id).where(
+                CompanyJobseekerBlock.jobseeker_id == jobseeker_id,
+                CompanyJobseekerBlock.legal_company_id == legal_company_id,
+                CompanyJobseekerBlock.is_active.is_(True),
+            )
+        ).first()
+        is not None
+    )
+
+
 def vacancy_conditions(
     q: Optional[str] = None,
     cities: Optional[list[str]] = None,
@@ -49,6 +75,7 @@ def vacancy_conditions(
     schedule: Optional[str] = None,
     legal_company_id: Optional[int] = None,
     status: Optional[str] = None,
+    hidden_company_ids: Optional[list[int]] = None,
 ) -> list:
     """SQL-условия для выборки вакансий.
 
@@ -95,6 +122,15 @@ def vacancy_conditions(
         conds.append(Vacancy.schedule_id.is_(None))
     elif schedule:
         conds.append(Schedule.value == schedule)
+
+    # Скрыть вакансии компаний, которые заблокировали вахтовика.
+    if hidden_company_ids:
+        conds.append(
+            or_(
+                Vacancy.legal_company_id.is_(None),
+                Vacancy.legal_company_id.notin_(hidden_company_ids),
+            )
+        )
 
     return conds
 

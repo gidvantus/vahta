@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { fmtSalary, dateLabel, normalizeLogo } from '../lib/format.js';
-import { showToast } from '../lib/toast.js';
+import { applyToVacancy } from '../lib/apply.js';
+import FavoriteButton from './FavoriteButton';
 
 const IconPin = (
   <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" /><circle cx="12" cy="10" r="3" /></svg>
@@ -16,8 +17,16 @@ const IconCheckBadge = (
   <svg className="icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#056FF1" /><path d="M6 10.3l2.6 2.6L14.2 7.4" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
 );
 
-export default function VacancyCard({ vacancy }) {
+export default function VacancyCard({
+  vacancy,
+  showApply = true,
+  showFavorite = true,
+  favorited = false,
+  onFavoriteChange,
+}) {
+  const navigate = useNavigate();
   const [applied, setApplied] = useState(false);
+  const [busy, setBusy] = useState(false);
   const logo = normalizeLogo(vacancy.logo);
   const companyInitial = (vacancy.company || '?').trim().charAt(0).toUpperCase();
   const scheduleChip = vacancy.schedule
@@ -26,14 +35,18 @@ export default function VacancyCard({ vacancy }) {
       ? `Вахта ${vacancy.shift_length.join('/')} дней`
       : '';
 
-  function handleApply() {
-    if (applied) return;
-    setApplied(true);
-    showToast(`Отклик отправлен! Компания <b>${vacancy.company}</b> получила ваше резюме.`);
+  async function handleApply() {
+    if (applied || busy) return;
+    setBusy(true);
+    const ok = await applyToVacancy(vacancy, navigate);
+    if (ok) setApplied(true);
+    setBusy(false);
   }
 
+  const unpublished = vacancy.status && vacancy.status !== 'published';
+
   return (
-    <article className="vacancy-card">
+    <article className={unpublished ? 'vacancy-card vacancy-card--unpublished' : 'vacancy-card'}>
       {vacancy.company && (
         <div className="vacancy-card__company">
           {logo ? (
@@ -47,7 +60,11 @@ export default function VacancyCard({ vacancy }) {
       <div className="vacancy-card__body">
         <div className="vacancy-card__top">
           <h3 className="vacancy-card__title">
-            <Link to={`/vacancy/${vacancy.full_slug || vacancy.id}`}>{vacancy.title}</Link>
+            {unpublished ? (
+              vacancy.title
+            ) : (
+              <Link to={`/vacancy/${vacancy.full_slug || vacancy.id}`}>{vacancy.title}</Link>
+            )}
           </h3>
           <span className="vacancy-card__date">
             {IconClock}
@@ -71,17 +88,32 @@ export default function VacancyCard({ vacancy }) {
             <b>{vacancy.company}</b>
           </p>
         )}
+        {unpublished && (
+          <p className="vacancy-card__notice">Вакансия снята с публикации</p>
+        )}
       </div>
 
-      <div className="vacancy-card__actions">
-        <button
-          className={applied ? 'btn btn--apply is-applied' : 'btn btn--apply'}
-          type="button"
-          onClick={handleApply}
-        >
-          {applied ? 'Откликнуться ✓' : 'Откликнуться'}
-        </button>
-      </div>
+      {(showApply || showFavorite) && (
+        <div className="vacancy-card__actions">
+          {showFavorite && (
+            <FavoriteButton
+              vacancy={vacancy}
+              favorited={favorited}
+              onChange={(on) => onFavoriteChange && onFavoriteChange(vacancy.id, on)}
+            />
+          )}
+          {showApply && !unpublished && (
+            <button
+              className={applied ? 'btn btn--apply is-applied' : 'btn btn--apply'}
+              type="button"
+              onClick={handleApply}
+              disabled={busy || applied}
+            >
+              {applied ? 'Откликнуться ✓' : busy ? 'Отправляем…' : 'Откликнуться'}
+            </button>
+          )}
+        </div>
+      )}
     </article>
   );
 }

@@ -13,7 +13,9 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.routers import (
+    applications,
     auth,
+    favorites,
     filters,
     jobseekers,
     legal_registration,
@@ -58,6 +60,8 @@ app.include_router(legal_registration.router)
 app.include_router(jobseekers.router)
 app.include_router(auth.router)
 app.include_router(uploads.router)
+app.include_router(applications.router)
+app.include_router(favorites.router)
 
 # Загруженные фото раздаются напрямую: /uploads/<file>
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")

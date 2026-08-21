@@ -38,7 +38,13 @@ export default function Header({ query, onQueryChange }) {
   function handleLogout() {
     clearSession();
     showToast('Вы вышли из личного кабинета');
-    if (location.pathname === '/account') navigate('/');
+    if (
+      location.pathname === '/account'
+      || location.pathname.startsWith('/company/')
+      || location.pathname.startsWith('/jobseeker/')
+    ) {
+      navigate('/');
+    }
   }
 
   function handleChange(e) {

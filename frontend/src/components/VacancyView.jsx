@@ -1,7 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Carousel from './Carousel';
+import { applyToVacancy } from '../lib/apply.js';
+import { useFavoriteSet } from '../lib/favorites.js';
+import FavoriteButton from './FavoriteButton';
 import { fmtHourlySalary, fmtSalary, normalizeLogo } from '../lib/format.js';
-import { showToast } from '../lib/toast.js';
 
 /* Иконки (те же, что на странице карточки). */
 const IconPin = (
@@ -50,7 +53,10 @@ function RequirementItem({ label, value, yes }) {
 /* Рендер полной карточки вакансии из данных (API или предосмотр формы).
    preview — скрывает кнопки «Откликнуться» (предосмотр перед публикацией). */
 export default function VacancyView({ vacancy, preview = false }) {
+  const navigate = useNavigate();
   const [applied, setApplied] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const { ids, setFavorite } = useFavoriteSet();
   const v = vacancy || {};
 
   const workPhotos = (v.work_photos || []).map(normalizeLogo);
@@ -68,10 +74,12 @@ export default function VacancyView({ vacancy, preview = false }) {
   const salaryMain = fmtSalary(v.salary_from, v.salary_to);
   const hourly = fmtHourlySalary(v.salary_hourly_from, v.salary_hourly_to);
 
-  function handleApply() {
-    if (applied || preview) return;
-    setApplied(true);
-    showToast(`Отклик отправлен! Компания <b>${v.company}</b> получила ваше резюме.`);
+  async function handleApply() {
+    if (applied || preview || busy) return;
+    setBusy(true);
+    const ok = await applyToVacancy(v, navigate);
+    if (ok) setApplied(true);
+    setBusy(false);
   }
 
   const applyButton = (id) => (
@@ -80,9 +88,9 @@ export default function VacancyView({ vacancy, preview = false }) {
       id={id}
       type="button"
       onClick={handleApply}
-      disabled={preview}
+      disabled={preview || busy || applied}
     >
-      {applied ? 'Откликнуться ✓' : 'Откликнуться'}
+      {applied ? 'Откликнуться ✓' : busy ? 'Отправляем…' : 'Откликнуться'}
     </button>
   );
 
@@ -151,6 +159,13 @@ export default function VacancyView({ vacancy, preview = false }) {
             </p>
           )}
           {!preview && applyButton('applyBtn')}
+          {!preview && v.id && (
+            <FavoriteButton
+              vacancy={v}
+              favorited={ids.has(v.id)}
+              onChange={(on) => setFavorite(v.id, on)}
+            />
+          )}
         </div>
       </section>
 

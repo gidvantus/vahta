@@ -12,7 +12,7 @@
   gap: 8px;
   font-size: 13.5px;
   color: var(--c-text-3);
-  padding: 24px 0 24px;
+  padding: 12px 0 24px;
 }
 .breadcrumbs a { color: var(--c-text-2); }
 .breadcrumbs a:hover { color: var(--c-primary); text-decoration: none; }
@@ -20,6 +20,10 @@
 .breadcrumbs .current { color: var(--c-text-2); font-weight: 600; }
 
 .vacancy-page { padding: 0 0 64px; }
+
+.vacancy-back {
+  margin: 20px 0 0;
+}
 
 /* ------------------------------ Шапка вакансии -------------------------- */
 
@@ -83,6 +87,7 @@
 .chip .icon { width: 15px; height: 15px; color: var(--c-text-3); }
 
 .vacancy-hero__actions { text-align: right; flex-shrink: 0; }
+.vacancy-hero__actions .btn-fav { margin-top: 8px; }
 .vacancy-hero__salary {
   margin: 0 0 12px;
   font-size: 24px;
