@@ -11,7 +11,7 @@ const FRONTEND = path.join(__dirname, '..', 'frontend');
   const { buildQueryParams, SALARY_MIN } = await import(
     pathToFileURL(path.join(FRONTEND, 'src', 'lib', 'query.js')).href
   );
-  const { fmtSalary, plural, dateLabel, normalizeLogo } = await import(
+  const { fmtSalary, fmtHourlySalary, countWords, plural, dateLabel, normalizeLogo } = await import(
     pathToFileURL(path.join(FRONTEND, 'src', 'lib', 'format.js')).href
   );
 
@@ -69,6 +69,8 @@ const FRONTEND = path.join(__dirname, '..', 'frontend');
   check('img/gazprom.svg → /img/gazprom.svg', normalizeLogo('img/gazprom.svg') === '/img/gazprom.svg');
   check('с ведущим /', normalizeLogo('/img/lukoil.svg') === '/img/lukoil.svg');
   check('внешний URL как есть', normalizeLogo('https://cdn.example.com/l.png') === 'https://cdn.example.com/l.png');
+  check('blob: URL как есть (превью фото)', normalizeLogo('blob:http://localhost:5173/abc-123') === 'blob:http://localhost:5173/abc-123');
+  check('data: URL как есть', normalizeLogo('data:image/png;base64,AAAA') === 'data:image/png;base64,AAAA');
   check('null → null', normalizeLogo(null) === null);
 
   const account = { registrant: { full_name: 'Иванов Иван', phone: '+79123456789' }, companies: [] };
@@ -94,6 +96,19 @@ const FRONTEND = path.join(__dirname, '..', 'frontend');
   auth.clearSession();
   check('после clearSession — не авторизован', auth.isAuthenticated() === false);
   check('loadSession после выхода → null', auth.loadSession() === null);
+
+  console.log('— fmtHourlySalary —');
+  check('от и до', normSpace(fmtHourlySalary(900, 1100)) === '900 – 1 100 ₽/час', fmtHourlySalary(900, 1100));
+  check('только от', normSpace(fmtHourlySalary(900, null)) === 'от 900 ₽/час', fmtHourlySalary(900, null));
+  check('только до', normSpace(fmtHourlySalary(null, 1100)) === 'до 1 100 ₽/час', fmtHourlySalary(null, 1100));
+  check('пусто → ""', fmtHourlySalary(null, null) === '');
+
+  console.log('— countWords —');
+  check('"Машинист буровой установки" → 3', countWords('Машинист буровой установки') === 3);
+  check('4 слова → 4', countWords('а б в г') === 4);
+  check('двойные пробелы схлопываются', countWords('  а   б  ') === 2);
+  check('пусто → 0', countWords('') === 0);
+  check('null → 0', countWords(null) === 0);
 
   console.log(failures === 0 ? '\nВСЕ ТЕСТЫ ПРОЙДЕНЫ' : `\nПРОВАЛЕНО: ${failures}`);
   process.exit(failures === 0 ? 0 : 1);

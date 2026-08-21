@@ -96,7 +96,7 @@ export default function Header({ query, onQueryChange }) {
           ) : (
             <Link className="login-link" to="/login">Войти</Link>
           )}
-          <a className="btn btn--primary" href="#">Разместить вакансию</a>
+          <Link className="btn btn--primary" to="/vacancy/new">Разместить вакансию</Link>
         </div>
       </div>
     </header>

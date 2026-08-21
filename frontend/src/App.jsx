@@ -1,9 +1,10 @@
-import { Routes, Route } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import Footer from './components/Footer';
 import Toast from './components/Toast';
 import ScrollToTop from './components/ScrollToTop';
 import CatalogPage from './pages/CatalogPage';
 import VacancyPage from './pages/VacancyPage';
+import CreateVacancyPage from './pages/CreateVacancyPage';
 import LegalRegistrationPage from './pages/LegalRegistrationPage';
 import LoginPage from './pages/LoginPage';
 import AccountPage from './pages/AccountPage';
@@ -16,7 +17,9 @@ export default function App() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<CatalogPage />} />
-        <Route path="/vacancy/:slug" element={<VacancyPage />} />
+        <Route path="/vacancy/new" element={<CreateVacancyPage />} />
+        <Route path="/vacancy/:id" element={<VacancyPage />} />
+        <Route path="/vacancy" element={<Navigate to="/" replace />} />
         {/* Отдельная страница регистрации юрлица — ссылок на неё пока нет */}
         <Route path="/register-company" element={<LegalRegistrationPage />} />
         {/* Отдельная страница входа: телефон + пароль, сверка с базой */}

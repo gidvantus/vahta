@@ -5,18 +5,26 @@
 """
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
-from app.routers import auth, filters, legal_registration, meta, vacancies
+from app.routers import auth, filters, legal_registration, meta, uploads, vacancies
+
+# Каталог загруженных фото (тот же, что использует роутер uploads).
+# Создаётся до монтирования StaticFiles — каталог должен существовать.
+UPLOAD_DIR = Path(__file__).resolve().parent.parent / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Таблицы создаются миграцией alembic upgrade head из entrypoint
     # контейнера. Данные добавляются пользователями через API.
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     yield
 
 
@@ -40,6 +48,10 @@ app.include_router(filters.router)
 app.include_router(meta.router)
 app.include_router(legal_registration.router)
 app.include_router(auth.router)
+app.include_router(uploads.router)
+
+# Загруженные фото раздаются напрямую: /uploads/<file>
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 
 @app.get("/", include_in_schema=False, tags=["system"])
