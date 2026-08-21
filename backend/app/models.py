@@ -66,9 +66,13 @@ class Vacancy(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(index=True, min_length=3, max_length=200)
-    # Транслит названия для уникального адреса детальной карточки:
-    # /vacancy/<slug> (например mashinist-burovoj-ustanovki).
-    slug: str = Field(unique=True, index=True, max_length=200)
+    # Транслит названия (часть полного слага карточки).
+    # Например: mashinist-burovoj-ustanovki.
+    slug: str = Field(index=True, max_length=200)
+    # Полный слаг карточки: транслит названия + '-' + транслит организации
+    # (например mashinist-burovoj-ustanovki-gazprom-neft). Уникальный адрес
+    # детальной карточки /vacancy/<full_slug> — открывается по нему, а не по id.
+    full_slug: str = Field(unique=True, index=True, max_length=500)
     salary_from: Optional[int] = Field(default=None, ge=0)
     salary_to: Optional[int] = Field(default=None, ge=0)
     description: Optional[str] = Field(default=None, sa_column=Column(Text))

@@ -130,12 +130,46 @@ def get_or_create_company(session: Session, name: str) -> Company:
     return company
 
 
+def make_full_slug(title_slug: str, company_slug: Optional[str]) -> str:
+    """Слаг карточки: транслит названия + '-' + транслит организации.
+
+    Без организации — просто транслит названия. Пример:
+    ("mashinist-burovoj-ustanovki", "gazprom-neft")
+    → "mashinist-burovoj-ustanovki-gazprom-neft".
+    """
+    if company_slug:
+        return f"{title_slug}-{company_slug}"
+    return title_slug
+
+
+def make_unique_full_slug(session: Session, base: str) -> str:
+    """Полный слаг карточки с гарантией уникальности.
+
+    При коллизии (одинаковая должность у разных организаций и похожие
+    слаги) добавляется суффикс -2, -3, ….
+    """
+    slug = base
+    n = 2
+    while session.exec(
+        select(Vacancy.id).where(Vacancy.full_slug == slug)
+    ).first() is not None:
+        slug = f"{base}-{n}"
+        n += 1
+    return slug
+
+
 def to_vacancy_out(v: Vacancy) -> VacancyOut:
     """Собирает плоскую модель ответа из модели БД."""
     return VacancyOut(
         id=v.id,
         title=v.title,
         slug=v.slug or translit_slug(v.title),
+        company_slug=v.company.slug if v.company else None,
+        full_slug=v.full_slug
+        or make_full_slug(
+            v.slug or translit_slug(v.title),
+            v.company.slug if v.company else None,
+        ),
         salary_from=v.salary_from,
         salary_to=v.salary_to,
         schedule=v.schedule_ref.value if v.schedule_ref else "",

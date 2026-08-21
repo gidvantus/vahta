@@ -96,7 +96,14 @@ export default function Header({ query, onQueryChange }) {
           ) : (
             <Link className="login-link" to="/login">Войти</Link>
           )}
-          <Link className="btn btn--primary" to="/vacancy/new">Разместить вакансию</Link>
+          {/* Разместить вакансию: авторизованным — форма вакансии,
+              неавторизованным — вход в аккаунт */}
+          <Link
+            className="btn btn--primary"
+            to={session ? '/vacancy/new' : '/login'}
+          >
+            Разместить вакансию
+          </Link>
         </div>
       </div>
     </header>

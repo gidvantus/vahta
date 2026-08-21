@@ -167,13 +167,16 @@ def seed_if_empty() -> int:
             companies[name] = company
 
         # Вакансии: город и график — из справочников (создаются при отсутствии).
-        # slug — транслит названия, дедуплицируется суффиксом -2, -3, …
+        # slug — транслит названия, full_slug — транслит названия + организации
+        # (адрес карточки /vacancy/<full_slug>). Оба дедуплицируются -2, -3, …
         taken = set(session.exec(select(Vacancy.slug)).all())
+        taken_full = set(session.exec(select(Vacancy.full_slug)).all())
         now = utcnow()
         added = 0
         for title, s_from, s_to, city_name, schedule_value, company_name, days_ago, desc, extras in SEED_VACANCIES:
             city = _get_or_create_city(session, city_name)
             sched = _get_or_create_schedule(session, schedule_value)
+            company = companies[company_name]
             base = translit_slug(title) or f"vacancy-{added + 1}"
             slug = base
             n = 2
@@ -181,14 +184,22 @@ def seed_if_empty() -> int:
                 slug = f"{base}-{n}"
                 n += 1
             taken.add(slug)
+            base_full = f"{slug}-{company.slug}"
+            full_slug = base_full
+            n = 2
+            while full_slug in taken_full:
+                full_slug = f"{base_full}-{n}"
+                n += 1
+            taken_full.add(full_slug)
             extra = extras or {}
             vacancy = Vacancy(
                 title=title,
                 slug=slug,
+                full_slug=full_slug,
                 salary_from=s_from,
                 salary_to=s_to,
                 city_id=city.id,
-                company_id=companies[company_name].id,
+                company_id=company.id,
                 schedule_id=sched.id if sched else None,
                 description=desc,
                 published_at=now - timedelta(days=days_ago),

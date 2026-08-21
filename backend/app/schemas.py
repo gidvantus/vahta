@@ -13,6 +13,11 @@ class VacancyOut(SQLModel):
     id: int
     title: str
     slug: str
+    # Транслит организации (часть полного слага карточки).
+    company_slug: Optional[str] = None
+    # Полный слаг карточки: транслит названия + '-' + транслит организации.
+    # По нему открывается карточка: /vacancy/<full_slug>.
+    full_slug: str = ""
     salary_from: Optional[int] = None
     salary_to: Optional[int] = None
     schedule: str

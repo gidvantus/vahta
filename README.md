@@ -7,8 +7,9 @@
 Две страницы:
 - `/` — каталог вакансий: список и фильтры загружаются **из базы**
   (`GET /api/v1/vacancies`, `GET /api/v1/filters`);
-- `/vacancy/:id` — карточка вакансии **из базы**
-  (`GET /api/v1/vacancies/{id}`);
+- `/vacancy/:slug` — карточка вакансии **по слагу** — транслит названия
+  + транслит организации, например `/vacancy/mashinist-burovoj-ustanovki-gazprom-neft`
+  (`GET /api/v1/vacancies/slug/{slug}`);
 - `/vacancy/new` — форма **создания вакансии** (кнопка «Разместить
   вакансию» в шапке): предосмотр карточки и публикация через
   `POST /api/v1/vacancies` (+ `POST /api/v1/uploads` для фото).
@@ -84,12 +85,12 @@ frontend/                — фронтенд (Vite + React)
 ├── package.json         — npm ci && npm run build
 ├── src/
 │   ├── main.jsx         — рендер приложения (React + Router)
-│   ├── App.jsx          — маршруты: / (каталог), /vacancy/:id (карточка),
+│   ├── App.jsx          — маршруты: / (каталог), /vacancy/:slug (карточка),
 │   │                      /vacancy/new (создание), /register-company,
 │   │                      /login, /account
 │   ├── api.js           — слой API: vacancies, filters, uploads, справочники
 │   ├── api/auth.js      — отдельный слой API авторизации (вход по телефону/паролю)
-│   ├── pages/           — CatalogPage (из БД), VacancyPage (по id из адреса),
+│   ├── pages/           — CatalogPage (из БД), VacancyPage (по слагу из адреса),
 │   │                      CreateVacancyPage (форма создания),
 │   │                      LegalRegistrationPage, LoginPage, AccountPage
 │   ├── components/      — Header (кнопка «Войти»/«Личный кабинет» по сессии),
@@ -114,14 +115,15 @@ backend/                 — бэкенд
 │   ├── service.py       — общая логика фильтрации/сортировки
 │   ├── auth.py          — отдельная логика авторизации (поиск по телефону,
 │   │                      сверка пароля с хешем)
-│   ├── translit.py      — транслитерация названий в slug (/vacancy/<slug>)
+│   ├── translit.py      — транслитерация названий в slug и full_slug
+│   │                      (/vacancy/<full_slug>: название + организация)
 │   ├── seed.py          — демо-данные (ручной запуск, не автозапуск)
 │   └── routers/         — vacancies (list/get/create), filters, meta,
 │                          legal_registration, auth,
 │                          uploads (загрузка фото в /app/uploads)
 ├── alembic/             — миграции (0001_initial, 0002_schedule_reference,
 │                          0003_vacancy_slug, 0004_legal_registration,
-│                          0005_registrant_password_hash, …)
+│                          0005_registrant_password_hash, …, 0010_vacancy_full_slug)
 └── Dockerfile
 docker-compose.yml       — весь стек: db + backend + frontend
 ```
@@ -133,16 +135,18 @@ docker-compose.yml       — весь стек: db + backend + frontend
   `salary_specified` (только с указанной зарплатой), `schedule`
   (значение из справочника: `15/15`, `30/30`, `45/15`, `60/30`,
   `90/60` или `other`), `sort` (`date` | `salary-desc` | `salary-asc`),
-  `page`, `page_size`. Каждая вакансия содержит `slug` — транслит
-  названия для уникального адреса карточки.
-- `GET /api/v1/vacancies/slug/{slug}` — карточка вакансии по slug
-  (например `/api/v1/vacancies/slug/mashinist-burovoi-ustanovki`)
+  `page`, `page_size`. Каждая вакансия содержит `slug` (транслит
+  названия), `company_slug` (транслит организации) и `full_slug` —
+  транслит названия + организации, по нему открывается карточка.
+- `GET /api/v1/vacancies/slug/{slug}` — карточка вакансии по полному
+  слагу (например `/api/v1/vacancies/slug/mashinist-burovoj-ustanovki-gazprom-neft`)
 - `GET /api/v1/vacancies/{id}` — карточка вакансии (включая поля формы
   создания: зарплата в час, часы в смену, продолжительность вахты,
   график работы, общежитие и схема проезда, фото, акции, обязанности,
   условия, питание, медкнижка, опыт, спецодежда, оплата проезда)
 - `POST /api/v1/vacancies` — создание вакансии (JSON-форма, город
-  и компания по названию, при отсутствии создаются)
+  и компания по названию, при отсутствии создаются; компания
+  подтягивается в форму из профиля/личного кабинета)
 - `POST /api/v1/uploads` — загрузка фото (multipart, поле `files`,
   до 7 файлов, до 8 МБ каждый; файлы раздаются с `/uploads/*`)
 - `GET /api/v1/filters` — данные сайдбара фильтров: города и графики

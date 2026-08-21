@@ -18,7 +18,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<CatalogPage />} />
         <Route path="/vacancy/new" element={<CreateVacancyPage />} />
-        <Route path="/vacancy/:id" element={<VacancyPage />} />
+        <Route path="/vacancy/:slug" element={<VacancyPage />} />
         <Route path="/vacancy" element={<Navigate to="/" replace />} />
         {/* Отдельная страница регистрации юрлица — ссылок на неё пока нет */}
         <Route path="/register-company" element={<LegalRegistrationPage />} />

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import PreviewModal from '../components/PreviewModal';
 import { createVacancy, fetchCities, uploadPhotos } from '../api.js';
+import { loadSession } from '../lib/auth.js';
 import { countWords } from '../lib/format.js';
 import { showToast } from '../lib/toast.js';
 import '../../css/vacancy.css';
@@ -170,6 +171,10 @@ export default function CreateVacancyPage() {
   const [cities, setCities] = useState([]);
   const [preview, setPreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  // Компания подтягивается из профиля (личного кабинета) — вакансия
+  // публикуется от имени организации, зарегистрированной в аккаунте.
+  const [session] = useState(() => loadSession());
+  const companyName = session?.companies?.[0]?.name || '';
 
   const words = countWords(form.title);
   const titleOver = words > MAX_TITLE_WORDS;
@@ -221,6 +226,7 @@ export default function CreateVacancyPage() {
     return {
       id: null,
       title: form.title.trim() || 'Название вакансии',
+      company: companyName,
       salary_from: toInt(form.salary_from),
       salary_to: toInt(form.salary_to),
       salary_hourly_from: toInt(form.salary_hourly_from),
@@ -269,6 +275,7 @@ export default function CreateVacancyPage() {
 
       const payload = {
         title: form.title.trim(),
+        company: companyName || null,
         city: form.city.trim(),
         salary_from: toInt(form.salary_from),
         salary_to: toInt(form.salary_to),
@@ -296,7 +303,7 @@ export default function CreateVacancyPage() {
 
       const created = await createVacancy(payload);
       showToast(`Вакансия «${created.title}» опубликована!`);
-      navigate(`/vacancy/${created.id}`);
+      navigate(`/vacancy/${created.full_slug || created.id}`);
     } catch (e) {
       const msg = /failed to fetch|networkerror|load failed/i.test(e.message || '')
         ? 'Сервер недоступен — проверьте соединение и попробуйте ещё раз.'
@@ -330,20 +337,23 @@ export default function CreateVacancyPage() {
           <p>Заполните форму — карточка вакансии соберётся автоматически. Поля со звёздочкой обязательны.</p>
         </div>
 
-        {/* Компания: заглушка. Сюда подставится название компании, от которой
-            создаётся вакансия, — когда будет реализован профиль компании. */}
-        <div className="create-company">
-          <span className="create-company__logo" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-4h6v4M9 10h.01M15 10h.01M9 14h.01M15 14h.01" /></svg>
-          </span>
-          <div className="create-company__info">
-            <span className="create-company__label">Компания</span>
-            <b className="create-company__name">Название компании</b>
-            <span className="create-company__hint">
-              Здесь появится название компании, от которой создаётся вакансия (после подключения профиля компании).
+        {/* Компания: название подтягивается из профиля (личного кабинета).
+            Вакансия публикуется от имени этой организации. Если в аккаунте
+            компаний нет — блок не показывается, вакансия создаётся без неё. */}
+        {companyName && (
+          <div className="create-company">
+            <span className="create-company__logo" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-4h6v4M9 10h.01M15 10h.01M9 14h.01M15 14h.01" /></svg>
             </span>
+            <div className="create-company__info">
+              <span className="create-company__label">Компания</span>
+              <b className="create-company__name">{companyName}</b>
+              <span className="create-company__hint">
+                Вакансия будет опубликована от имени этой компании.
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         <form className="create-form" onSubmit={(e) => { e.preventDefault(); handlePublish(); }}>
           {/* 1) Основное */}

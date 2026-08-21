@@ -1,9 +1,10 @@
-"""Роутер вакансий: список с фильтрами, карточка по id и создание."""
+"""Роутер вакансий: список с фильтрами, карточка по слагу и создание."""
 
 from typing import Literal, Optional
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlmodel import Session, select
 
 from app.db import get_session
@@ -12,10 +13,13 @@ from app.schemas import VacancyCreate, VacancyListOut, VacancyOut
 from app.service import (
     get_or_create_city,
     get_or_create_company,
+    make_full_slug,
+    make_unique_full_slug,
     order_for,
     to_vacancy_out,
     vacancy_conditions,
 )
+from app.translit import translit_slug
 
 router = APIRouter(prefix="/api/v1/vacancies", tags=["vacancies"])
 
@@ -66,13 +70,24 @@ def list_vacancies(
     return VacancyListOut(items=items, total=total, page=page, page_size=page_size)
 
 
-@router.get("/slug/{slug}", response_model=VacancyOut, summary="Вакансия по slug (транслит названия)")
+@router.get("/slug/{slug}", response_model=VacancyOut, summary="Вакансия по полному слагу (транслит названия + организации)")
 def get_vacancy_by_slug(
     slug: str,
     session: Session = Depends(get_session),
 ) -> VacancyOut:
+    """Ищет вакансию по полному слагу карточки.
+
+    Полный слаг — транслит названия + '-' + транслит организации
+    (например mashinist-burovoj-ustanovki-gazprom-neft). Для старых
+    ссылок дополнительно ищет по слагу одного названия.
+    """
     v = session.exec(
-        select(Vacancy).where(Vacancy.slug == slug, Vacancy.is_active.is_(True))
+        select(Vacancy)
+        .where(
+            Vacancy.is_active.is_(True),
+            or_(Vacancy.full_slug == slug, Vacancy.slug == slug),
+        )
+        .order_by(Vacancy.id)
     ).first()
     if v is None:
         raise HTTPException(status_code=404, detail="Вакансия не найдена")
@@ -97,21 +112,32 @@ def create_vacancy(
 ) -> VacancyOut:
     """Создаёт вакансию из данных формы.
 
-    Город берётся по названию (при отсутствии создаётся). Компания
-    необязательна: название появится, когда будет реализован профиль
-    компании (пока вакансии создаются без привязки к компании).
+    Город и компания берутся по названию (при отсутствии создаются).
+    Компания передаётся из профиля (личного кабинета) — название
+    подтягивается в форму создания автоматически. slug — транслит
+    названия, full_slug — транслит названия + транслит организации
+    (уникальный адрес карточки /vacancy/<full_slug>).
     """
     try:
         city = get_or_create_city(session, payload.city)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
-    company_id = None
+    company = None
     if payload.company and payload.company.strip():
-        company_id = get_or_create_company(session, payload.company).id
+        company = get_or_create_company(session, payload.company)
+
+    # slug: транслит названия; full_slug: транслит названия + организации.
+    title_slug = translit_slug(payload.title) or f"vacancy-{uuid4().hex[:6]}"
+    full_slug = make_unique_full_slug(
+        session,
+        make_full_slug(title_slug, company.slug if company else None),
+    )
 
     vacancy = Vacancy(
         title=payload.title,
+        slug=title_slug,
+        full_slug=full_slug,
         salary_from=payload.salary_from,
         salary_to=payload.salary_to,
         salary_hourly_from=payload.salary_hourly_from,
@@ -121,7 +147,7 @@ def create_vacancy(
         work_schedule=payload.work_schedule,
         description=payload.description,
         city_id=city.id,
-        company_id=company_id,
+        company_id=company.id if company else None,
         dorm_address=payload.dorm_address,
         dorm_route=payload.dorm_route,
         dorm_route_photo=payload.dorm_route_photo,

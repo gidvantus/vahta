@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { fetchVacancy } from '../api.js';
+import { fetchVacancyBySlug } from '../api.js';
 import Header from '../components/Header';
 import VacancyView from '../components/VacancyView';
 import '../../css/vacancy.css';
 
 export default function VacancyPage() {
-  const { id } = useParams();
+  const { slug } = useParams();
   const [status, setStatus] = useState('loading'); // loading | ready | error
   const [vacancy, setVacancy] = useState(null);
   const [error, setError] = useState('');
@@ -15,7 +15,7 @@ export default function VacancyPage() {
     let alive = true;
     setStatus('loading');
     setVacancy(null);
-    fetchVacancy(id)
+    fetchVacancyBySlug(slug)
       .then((v) => {
         if (!alive) return;
         setVacancy(v);
@@ -31,7 +31,7 @@ export default function VacancyPage() {
     return () => {
       alive = false;
     };
-  }, [id]);
+  }, [slug]);
 
   const notFound = /не найдена/i.test(error);
   const netError = /failed to fetch|networkerror|load failed/i.test(error);
