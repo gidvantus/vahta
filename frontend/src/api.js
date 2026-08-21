@@ -7,8 +7,27 @@ const DEFAULT_PAGE_SIZE = 50;
 
 async function getJSON(url) {
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`Ошибка API: ${res.status}`);
+  if (!res.ok) throw new Error(await apiError(res));
   return res.json();
+}
+
+/* Текстовое описание ошибки API (detail из FastAPI). */
+async function apiError(res) {
+  let detail = null;
+  try {
+    const j = await res.json();
+    detail = j.detail;
+  } catch {
+    /* не JSON — оставляем null */
+  }
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) {
+    return detail
+      .map((d) => (typeof d === 'string' ? d : d.msg))
+      .filter(Boolean)
+      .join('; ');
+  }
+  return `Ошибка API: ${res.status}`;
 }
 
 /* Список вакансий с фильтрами и пагинацией. */
@@ -21,7 +40,41 @@ export function fetchVacancies(state, page = 1, pageSize = DEFAULT_PAGE_SIZE) {
   return getJSON(`${API_BASE}/vacancies?${params}`);
 }
 
+/* Карточка вакансии по id. */
+export function fetchVacancy(id) {
+  return getJSON(`${API_BASE}/vacancies/${id}`);
+}
+
+/* Создание вакансии из данных формы. Возвращает созданную вакансию. */
+export async function createVacancy(data) {
+  const res = await fetch(`${API_BASE}/vacancies`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(await apiError(res));
+  return res.json();
+}
+
+/* Загрузка фото (multipart). Возвращает { paths: [...] } — пути к файлам. */
+export async function uploadPhotos(files) {
+  const form = new FormData();
+  for (const f of files) form.append('files', f);
+  const res = await fetch(`${API_BASE}/uploads`, { method: 'POST', body: form });
+  if (!res.ok) throw new Error(await apiError(res));
+  return res.json();
+}
+
 /* Данные сайдбара фильтров: города, графики, зарплаты со счётчиками. */
 export function fetchFilters() {
   return getJSON(`${API_BASE}/filters`);
+}
+
+/* Справочники: города и компании (для формы создания вакансии). */
+export function fetchCities() {
+  return getJSON(`${API_BASE}/cities`);
+}
+
+export function fetchCompanies() {
+  return getJSON(`${API_BASE}/companies`);
 }

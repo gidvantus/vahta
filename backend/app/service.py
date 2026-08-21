@@ -4,13 +4,31 @@
 фильтрации была в одном месте.
 """
 
+import re
 from typing import Optional
+from uuid import uuid4
 
 from sqlalchemy import func, or_
 from sqlmodel import Session, select
 
 from app.models import City, Company, Schedule, Vacancy
 from app.schemas import VacancyOut
+
+# Транслитерация кириллицы для слагов компаний.
+_TRANSLIT = {
+    "а": "a", "б": "b", "в": "v", "г": "g", "д": "d", "е": "e", "ё": "e",
+    "ж": "zh", "з": "z", "и": "i", "й": "y", "к": "k", "л": "l", "м": "m",
+    "н": "n", "о": "o", "п": "p", "р": "r", "с": "s", "т": "t", "у": "u",
+    "ф": "f", "х": "h", "ц": "ts", "ч": "ch", "ш": "sh", "щ": "sch",
+    "ъ": "", "ы": "y", "ь": "", "э": "e", "ю": "yu", "я": "ya",
+}
+
+
+def slugify(name: str) -> str:
+    """Слаг из названия компании («Газпром нефть» → gazprom-neft)."""
+    lowered = (name or "").lower().strip()
+    out = "".join(_TRANSLIT.get(ch, ch if ch.isalnum() else "-") for ch in lowered)
+    return re.sub(r"[^a-z0-9]+", "-", out).strip("-") or "company"
 
 # Опции зарплаты: value, label, min (None — любое), specified_only
 SALARY_OPTIONS = (
@@ -76,6 +94,41 @@ def order_for(sort: str):
     return [Vacancy.published_at.desc(), Vacancy.id.desc()]
 
 
+def get_or_create_city(session: Session, name: str) -> City:
+    """Возвращает город из справочника, при отсутствии — создаёт."""
+    name = (name or "").strip()
+    if not name:
+        raise ValueError("Укажите город")
+    city = session.exec(select(City).where(func.lower(City.name) == name.lower())).first()
+    if city is None:
+        city = City(name=name)
+        session.add(city)
+        session.flush()
+    return city
+
+
+def get_or_create_company(session: Session, name: str) -> Company:
+    """Возвращает компанию по названию, при отсутствии — создаёт.
+
+    Слаг генерируется транслитерацией; при коллизии добавляется суффикс.
+    """
+    name = (name or "").strip()
+    if not name:
+        raise ValueError("Укажите компанию")
+    company = session.exec(
+        select(Company).where(func.lower(Company.name) == name.lower())
+    ).first()
+    if company is None:
+        slug = slugify(name)
+        existing = session.exec(select(Company.id).where(Company.slug == slug)).first()
+        if existing is not None:
+            slug = f"{slug}-{uuid4().hex[:6]}"
+        company = Company(name=name, slug=slug, verified=False)
+        session.add(company)
+        session.flush()
+    return company
+
+
 def to_vacancy_out(v: Vacancy) -> VacancyOut:
     """Собирает плоскую модель ответа из модели БД."""
     return VacancyOut(
@@ -90,4 +143,23 @@ def to_vacancy_out(v: Vacancy) -> VacancyOut:
         logo=v.company.logo if v.company else None,
         verified=v.company.verified if v.company else False,
         published_at=v.published_at,
+        salary_hourly_from=v.salary_hourly_from,
+        salary_hourly_to=v.salary_hourly_to,
+        hours_per_shift=v.hours_per_shift or [],
+        shift_length=v.shift_length or [],
+        work_schedule=v.work_schedule or [],
+        dorm_address=v.dorm_address,
+        dorm_route=v.dorm_route,
+        dorm_route_photo=v.dorm_route_photo,
+        work_photos=v.work_photos or [],
+        dorm_photos=v.dorm_photos or [],
+        promos=v.promos or [],
+        duties=v.duties,
+        living_conditions=v.living_conditions,
+        meals=v.meals,
+        med_book=v.med_book,
+        experience_required=v.experience_required,
+        experience_requirements=v.experience_requirements,
+        clothing=v.clothing,
+        travel_paid=v.travel_paid,
     )

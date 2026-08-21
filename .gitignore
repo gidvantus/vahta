@@ -13,5 +13,8 @@ __pycache__/
 venv/
 .env
 
+# Загруженные фото вакансий (создаются на лету)
+/backend/uploads/
+
 # Тесты Python
 .pytest_cache/

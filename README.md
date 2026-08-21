@@ -7,8 +7,11 @@
 Две страницы:
 - `/` — каталог вакансий: список и фильтры загружаются **из базы**
   (`GET /api/v1/vacancies`, `GET /api/v1/filters`);
-- `/vacancy/` — карточка вакансии, пока **статическая** (не из базы,
-  интеграция с `GET /api/v1/vacancies/{id}` — следующий шаг).
+- `/vacancy/:id` — карточка вакансии **из базы**
+  (`GET /api/v1/vacancies/{id}`);
+- `/vacancy/new` — форма **создания вакансии** (кнопка «Разместить
+  вакансию» в шапке): предосмотр карточки и публикация через
+  `POST /api/v1/vacancies` (+ `POST /api/v1/uploads` для фото).
 
 ## Быстрый старт (весь стек из одного файла)
 
@@ -40,7 +43,14 @@ docker compose exec backend python -m app.seed
 
 Скрипт идемпотентен: если в `vacancies` уже есть записи, он ничего
 не делает. Справочники (города, графики вахты) наполняются миграцией
-применяемой при старте контейнера.
+применяемой при старте контейнера. Часть вакансий сид наполняет
+полными данными карточки (фото, акции, обязанности, условия). Чтобы
+пересоздать демо-данные с новыми полями:
+
+```bash
+docker compose exec db psql -U vahta -d vahta -c "TRUNCATE vacancy RESTART IDENTITY CASCADE"
+docker compose exec backend python -m app.seed
+```
 
 ## Тесты
 
@@ -58,20 +68,22 @@ node test/run-tests.js
 ```
 frontend/                — фронтенд (Vite + React)
 ├── index.html           — точка входа Vite
-├── vite.config.js
+├── vite.config.js       — dev-прокси /api и /uploads на localhost:8000
 ├── package.json         — npm ci && npm run build
 ├── src/
 │   ├── main.jsx         — рендер приложения (React + Router)
-│   ├── App.jsx          — маршруты: / (каталог), /vacancy (карточка)
-│   ├── api.js           — слой API: fetch /api/v1/vacancies, /api/v1/filters
-│   ├── pages/           — CatalogPage (из БД), VacancyPage (пока статична)
+│   ├── App.jsx          — маршруты: /, /vacancy/:id, /vacancy/new
+│   ├── api.js           — слой API: vacancies, filters, uploads, справочники
+│   ├── pages/           — CatalogPage, VacancyPage (из БД),
+│   │                      CreateVacancyPage (форма создания)
 │   ├── components/      — Header, Footer, VacancyCard, FilterSidebar,
-│   │                      SortMenu, Carousel, Toast
+│   │                      SortMenu, Carousel, Toast, VacancyView,
+│   │                      PreviewModal
 │   ├── lib/             — query.js (параметры запроса), format.js (форматы)
 │   └── css/             — (импорт стилей из css/)
-├── css/                 — стили (style.css, vacancy.css)
+├── css/                 — стили (style.css, vacancy.css, create.css)
 ├── public/img/          — статика: логотипы, фото, схема проезда
-├── nginx.conf           — SPA-fallback + прокси /api/ на бэкенд
+├── nginx.conf           — SPA-fallback + прокси /api/ и /uploads/ на бэкенд
 ├── test/ → корень       — тесты лежат в ../test
 └── Dockerfile           — multi-stage: node (build) → nginx (dist)
 backend/                 — бэкенд
@@ -80,11 +92,13 @@ backend/                 — бэкенд
 │   ├── config.py        — настройки из env (.env / compose)
 │   ├── db.py            — engine + сессия
 │   ├── models.py        — SQLModel: Company, City, Schedule, Vacancy
-│   ├── schemas.py       — Pydantic-схемы ответов
+│   ├── schemas.py       — Pydantic-схемы ответов и создания
 │   ├── service.py       — общая логика фильтрации/сортировки
 │   ├── seed.py          — демо-данные (ручной запуск, не автозапуск)
-│   └── routers/         — vacancies, filters, meta
-├── alembic/             — миграции (versions/0001_initial.py, 0002_schedule_reference.py)
+│   └── routers/         — vacancies (list/get/create), filters, meta,
+│                          uploads (загрузка фото в /app/uploads)
+├── alembic/             — миграции (0001_initial, 0002_schedule_reference,
+│                          0003_vacancy_extra_fields)
 └── Dockerfile
 docker-compose.yml       — весь стек: db + backend + frontend
 ```
@@ -97,7 +111,14 @@ docker-compose.yml       — весь стек: db + backend + frontend
   (значение из справочника: `15/15`, `30/30`, `45/15`, `60/30`,
   `90/60` или `other`), `sort` (`date` | `salary-desc` | `salary-asc`),
   `page`, `page_size`
-- `GET /api/v1/vacancies/{id}` — карточка вакансии
+- `GET /api/v1/vacancies/{id}` — карточка вакансии (включая поля формы
+  создания: зарплата в час, часы в смену, продолжительность вахты,
+  график работы, общежитие и схема проезда, фото, акции, обязанности,
+  условия, питание, медкнижка, опыт, спецодежда, оплата проезда)
+- `POST /api/v1/vacancies` — создание вакансии (JSON-форма, город
+  и компания по названию, при отсутствии создаются)
+- `POST /api/v1/uploads` — загрузка фото (multipart, поле `files`,
+  до 7 файлов, до 8 МБ каждый; файлы раздаются с `/uploads/*`)
 - `GET /api/v1/filters` — данные сайдбара фильтров: города и графики
   вахты из справочников (`city`, `schedule`) со счётчиками активных
   вакансий, зарплатные диапазоны

@@ -20,6 +20,11 @@ export default function VacancyCard({ vacancy }) {
   const [applied, setApplied] = useState(false);
   const logo = normalizeLogo(vacancy.logo);
   const companyInitial = (vacancy.company || '?').trim().charAt(0).toUpperCase();
+  const scheduleChip = vacancy.schedule
+    ? `Вахта ${vacancy.schedule}`
+    : vacancy.shift_length && vacancy.shift_length.length
+      ? `Вахта ${vacancy.shift_length.join('/')} дней`
+      : '';
 
   function handleApply() {
     if (applied) return;
@@ -29,18 +34,20 @@ export default function VacancyCard({ vacancy }) {
 
   return (
     <article className="vacancy-card">
-      <div className="vacancy-card__company">
-        {logo ? (
-          <img src={logo} alt={vacancy.company} />
-        ) : (
-          <span className="vacancy-card__logo-fallback" aria-hidden="true">{companyInitial}</span>
-        )}
-      </div>
+      {vacancy.company && (
+        <div className="vacancy-card__company">
+          {logo ? (
+            <img src={logo} alt={vacancy.company} />
+          ) : (
+            <span className="vacancy-card__logo-fallback" aria-hidden="true">{companyInitial}</span>
+          )}
+        </div>
+      )}
 
       <div className="vacancy-card__body">
         <div className="vacancy-card__top">
           <h3 className="vacancy-card__title">
-            <Link to="/vacancy">{vacancy.title}</Link>
+            <Link to={`/vacancy/${vacancy.id}`}>{vacancy.title}</Link>
           </h3>
           <span className="vacancy-card__date">
             {IconClock}
@@ -52,16 +59,18 @@ export default function VacancyCard({ vacancy }) {
 
         <div className="vacancy-card__meta">
           <span>{IconPin}{vacancy.city}</span>
-          {vacancy.schedule && (
-            <span className="schedule-chip">{IconCalendar}Вахта {vacancy.schedule}</span>
+          {scheduleChip && (
+            <span className="schedule-chip">{IconCalendar}{scheduleChip}</span>
           )}
         </div>
 
-        <p className="vacancy-card__company-line">
-          {vacancy.verified ? IconCheckBadge : <span className="icon-placeholder" />}
-          {vacancy.verified && 'Проверенная компания · '}
-          <b>{vacancy.company}</b>
-        </p>
+        {vacancy.company && (
+          <p className="vacancy-card__company-line">
+            {vacancy.verified ? IconCheckBadge : <span className="icon-placeholder" />}
+            {vacancy.verified && 'Проверенная компания · '}
+            <b>{vacancy.company}</b>
+          </p>
+        )}
       </div>
 
       <div className="vacancy-card__actions">

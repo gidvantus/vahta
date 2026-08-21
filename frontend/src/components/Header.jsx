@@ -58,7 +58,7 @@ export default function Header({ query, onQueryChange }) {
             <span className="icon-btn__badge">3</span>
           </button>
           <a className="login-link" href="#">Вход</a>
-          <a className="btn btn--primary" href="#">Разместить вакансию</a>
+          <Link className="btn btn--primary" to="/vacancy/new">Разместить вакансию</Link>
         </div>
       </div>
     </header>

@@ -8,6 +8,22 @@ export function fmtSalary(from, to) {
   return `до ${n(to)} ₽`;
 }
 
+/* Зарплата в час: «от 900 ₽/час», «до 1 100 ₽/час», «900 – 1 100 ₽/час». */
+export function fmtHourlySalary(from, to) {
+  if (from == null && to == null) return '';
+  const n = (v) => (v == null ? '' : v.toLocaleString('ru-RU'));
+  if (from != null && to != null) return `${n(from)} – ${n(to)} ₽/час`;
+  if (from != null) return `от ${n(from)} ₽/час`;
+  return `до ${n(to)} ₽/час`;
+}
+
+/* Число слов в строке (для ограничения «не более 3 слов»). */
+export function countWords(s) {
+  const t = (s || '').trim();
+  if (!t) return 0;
+  return t.split(/\s+/).length;
+}
+
 export function plural(n, forms) {
   const n10 = n % 10;
   const n100 = n % 100;
@@ -29,10 +45,10 @@ export function dateLabel(iso) {
   return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
 }
 
-/* Нормализация логотипа из API: относительный путь → с ведущим слэшем;
-   внешние URL — как есть. */
+/* Нормализация логотипа/фото из API: относительный путь → с ведущим слэшем;
+   внешние URL, blob: и data: — как есть (blob: — превью в предосмотре). */
 export function normalizeLogo(logo) {
   if (!logo) return null;
-  if (/^https?:\/\//i.test(logo)) return logo;
+  if (/^(https?:|blob:|data:)/i.test(logo)) return logo;
   return `/${logo.replace(/^\/+/, '')}`;
 }

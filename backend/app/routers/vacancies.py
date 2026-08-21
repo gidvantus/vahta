@@ -1,4 +1,4 @@
-"""Роутер вакансий: список с фильтрами и карточка по id."""
+"""Роутер вакансий: список с фильтрами, карточка по id и создание."""
 
 from typing import Literal, Optional
 
@@ -8,8 +8,14 @@ from sqlmodel import Session, select
 
 from app.db import get_session
 from app.models import Vacancy
-from app.schemas import VacancyListOut, VacancyOut
-from app.service import order_for, to_vacancy_out, vacancy_conditions
+from app.schemas import VacancyCreate, VacancyListOut, VacancyOut
+from app.service import (
+    get_or_create_city,
+    get_or_create_company,
+    order_for,
+    to_vacancy_out,
+    vacancy_conditions,
+)
 
 router = APIRouter(prefix="/api/v1/vacancies", tags=["vacancies"])
 
@@ -69,3 +75,56 @@ def get_vacancy(
     if v is None or not v.is_active:
         raise HTTPException(status_code=404, detail="Вакансия не найдена")
     return to_vacancy_out(v)
+
+
+@router.post("", response_model=VacancyOut, status_code=201, summary="Создать вакансию")
+def create_vacancy(
+    payload: VacancyCreate,
+    session: Session = Depends(get_session),
+) -> VacancyOut:
+    """Создаёт вакансию из данных формы.
+
+    Город берётся по названию (при отсутствии создаётся). Компания
+    необязательна: название появится, когда будет реализован профиль
+    компании (пока вакансии создаются без привязки к компании).
+    """
+    try:
+        city = get_or_create_city(session, payload.city)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    company_id = None
+    if payload.company and payload.company.strip():
+        company_id = get_or_create_company(session, payload.company).id
+
+    vacancy = Vacancy(
+        title=payload.title,
+        salary_from=payload.salary_from,
+        salary_to=payload.salary_to,
+        salary_hourly_from=payload.salary_hourly_from,
+        salary_hourly_to=payload.salary_hourly_to,
+        hours_per_shift=payload.hours_per_shift,
+        shift_length=payload.shift_length,
+        work_schedule=payload.work_schedule,
+        description=payload.description,
+        city_id=city.id,
+        company_id=company_id,
+        dorm_address=payload.dorm_address,
+        dorm_route=payload.dorm_route,
+        dorm_route_photo=payload.dorm_route_photo,
+        work_photos=payload.work_photos,
+        dorm_photos=payload.dorm_photos,
+        promos=[p.model_dump() for p in payload.promos],
+        duties=payload.duties,
+        living_conditions=payload.living_conditions,
+        meals=payload.meals,
+        med_book=payload.med_book,
+        experience_required=payload.experience_required,
+        experience_requirements=payload.experience_requirements,
+        clothing=payload.clothing,
+        travel_paid=payload.travel_paid,
+    )
+    session.add(vacancy)
+    session.commit()
+    saved = session.get(Vacancy, vacancy.id)
+    return to_vacancy_out(saved)

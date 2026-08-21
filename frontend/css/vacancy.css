@@ -286,6 +286,16 @@
 .route-address .icon { width: 18px; height: 18px; color: var(--c-primary); flex-shrink: 0; }
 .route-address b { font-weight: 700; }
 
+/* Схема проезда: прикреплённый файл */
+.route-map {
+  margin: 14px 0 0;
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #eef1f6;
+}
+.route-map img { display: block; width: 100%; max-height: 420px; object-fit: contain; background: #fff; }
+
 /* ------------------------------ Сайдбар --------------------------------- */
 
 .side-card {
@@ -312,7 +322,7 @@
   margin: 0;
   padding: 0;
 }
-.side-list li {
+.side-list > div {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -321,7 +331,7 @@
   border-bottom: 1px solid var(--c-border-soft);
   font-size: 14px;
 }
-.side-list li:last-child { border-bottom: 0; }
+.side-list > div:last-child { border-bottom: 0; }
 .side-list dt { color: var(--c-text-2); }
 .side-list dd { margin: 0; font-weight: 600; color: var(--c-text); text-align: right; }
 

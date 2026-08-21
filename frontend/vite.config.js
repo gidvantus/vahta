@@ -6,4 +6,12 @@ export default defineConfig({
   build: {
     outDir: 'dist',
   },
+  server: {
+    // В dev-режиме API и загруженные фото проксируются на бэкенд
+    // (в проде эту роль выполняет frontend/nginx.conf).
+    proxy: {
+      '/api': 'http://localhost:8000',
+      '/uploads': 'http://localhost:8000',
+    },
+  },
 });
