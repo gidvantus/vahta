@@ -16,13 +16,13 @@ PATCH /api/v1/jobseekers/{id} — редактирование данных в �
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.db import get_session
 from app.legal import is_valid_password, normalize_phone
-from app.models import JobSeeker
+from app.models import JobSeeker, Vacancy, VacancyApplication
 from app.schemas import (
     AccountOut,
     JobSeekerOut,
@@ -47,6 +47,18 @@ def _parse_date_of_birth(value: str) -> Optional[object]:
         return None
 
 
+def _normalize_photo(value: Optional[str]) -> Optional[str]:
+    """Путь к загруженному фото: uploads/<файл> или None."""
+    if value is None:
+        return None
+    path = value.strip().lstrip("/")
+    if not path:
+        return None
+    if not path.startswith("uploads/") or ".." in path or path.count("/") != 1:
+        raise HTTPException(status_code=422, detail="Некорректный путь к фото")
+    return path
+
+
 def _jobseeker_out(jobseeker: JobSeeker) -> JobSeekerOut:
     """JobSeekerOut из модели (все поля профиля)."""
     return JobSeekerOut(
@@ -61,7 +73,36 @@ def _jobseeker_out(jobseeker: JobSeeker) -> JobSeekerOut:
         passport=jobseeker.passport,
         citizenship=jobseeker.citizenship,
         medical_book=jobseeker.medical_book,
+        photo=jobseeker.photo,
     )
+
+
+@router.get(
+    "/{jobseeker_id}",
+    response_model=JobSeekerOut,
+    summary="Профиль вахтовика для компании (по отклику)",
+)
+def get_jobseeker_for_company(
+    jobseeker_id: int,
+    legal_company_id: int = Query(..., description="Организация, у которой есть отклик"),
+    session: Session = Depends(get_session),
+) -> JobSeekerOut:
+    """Профиль только если вахтовик откликался на вакансию этой компании."""
+    applied = session.exec(
+        select(VacancyApplication.id)
+        .join(Vacancy)
+        .where(
+            VacancyApplication.jobseeker_id == jobseeker_id,
+            Vacancy.legal_company_id == legal_company_id,
+        )
+    ).first()
+    if applied is None:
+        raise HTTPException(status_code=404, detail="Профиль недоступен")
+
+    jobseeker = session.get(JobSeeker, jobseeker_id)
+    if jobseeker is None:
+        raise HTTPException(status_code=404, detail="Соискатель не найден")
+    return _jobseeker_out(jobseeker)
 
 
 @router.patch(
@@ -153,6 +194,7 @@ def update_jobseeker(
     jobseeker.passport = passport
     jobseeker.citizenship = payload.citizenship
     jobseeker.medical_book = medical_book
+    jobseeker.photo = _normalize_photo(payload.photo)
     try:
         session.commit()
     except IntegrityError:

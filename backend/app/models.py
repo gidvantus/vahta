@@ -11,7 +11,7 @@ jobseeker (регистрация для поиска работы — физи�
 from datetime import date, datetime, timezone
 from typing import Optional
 
-from sqlalchemy import JSON, Column, Text
+from sqlalchemy import JSON, Column, Text, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -197,7 +197,8 @@ class JobSeeker(SQLModel, table=True):
     Поля профиля (заполняются и редактируются в личном кабинете):
     date_of_birth (дата рождения), age (возраст), gender (пол),
     passport (серия и номер паспорта), citizenship (гражданство),
-    medical_book (медицинская книжка: Да/Нет, необязательное).
+    medical_book (медицинская книжка: Да/Нет, необязательное),
+    photo (аватар в личном кабинете).
     """
 
     __tablename__ = "jobseeker"
@@ -217,3 +218,78 @@ class JobSeeker(SQLModel, table=True):
     passport: Optional[str] = Field(default=None, max_length=30)
     citizenship: Optional[str] = Field(default=None, max_length=64)
     medical_book: Optional[str] = Field(default=None, max_length=16)
+    photo: Optional[str] = Field(default=None, max_length=500)
+
+
+class VacancyApplication(SQLModel, table=True):
+    """Отклик вахтовика на вакансию.
+
+    Появляется в кабинете компании («Отклики») у организации,
+    которой принадлежит вакансия (legal_company_id).
+    Один вахтовик — один отклик на одну вакансию.
+    """
+
+    __tablename__ = "vacancy_application"
+    __table_args__ = (
+        UniqueConstraint(
+            "vacancy_id",
+            "jobseeker_id",
+            name="uq_application_vacancy_jobseeker",
+        ),
+    )
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    vacancy_id: int = Field(foreign_key="vacancy.id", index=True)
+    jobseeker_id: int = Field(foreign_key="jobseeker.id", index=True)
+    # pending | accepted | rejected | blocked
+    status: str = Field(default="pending", index=True, max_length=16)
+    decision_reason: Optional[str] = Field(default=None, sa_column=Column(Text))
+    decided_at: Optional[datetime] = Field(default=None)
+    # none | departed | started | finished
+    work_status: str = Field(default="none", index=True, max_length=16)
+    arrival_confirmed: bool = Field(default=False)
+    start_confirmed: bool = Field(default=False)
+    finish_confirmed: bool = Field(default=False)
+    finish_reject_kind: Optional[str] = Field(default=None, max_length=32)
+    finish_reject_reason: Optional[str] = Field(default=None, sa_column=Column(Text))
+    created_at: datetime = Field(default_factory=utcnow)
+
+
+class CompanyJobseekerBlock(SQLModel, table=True):
+    """Блокировка вахтовика компанией: вакансии скрыты, отклик запрещён."""
+
+    __tablename__ = "company_jobseeker_block"
+    __table_args__ = (
+        UniqueConstraint(
+            "legal_company_id",
+            "jobseeker_id",
+            name="uq_company_jobseeker_block",
+        ),
+    )
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    legal_company_id: int = Field(foreign_key="legal_company.id", index=True)
+    jobseeker_id: int = Field(foreign_key="jobseeker.id", index=True)
+    reason: str = Field(sa_column=Column(Text))
+    is_active: bool = Field(default=True, index=True)
+    created_at: datetime = Field(default_factory=utcnow)
+
+
+class VacancyFavorite(SQLModel, table=True):
+    """Избранная вакансия вахтовика."""
+
+    __tablename__ = "vacancy_favorite"
+    __table_args__ = (
+        UniqueConstraint(
+            "vacancy_id",
+            "jobseeker_id",
+            name="uq_favorite_vacancy_jobseeker",
+        ),
+    )
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    vacancy_id: int = Field(foreign_key="vacancy.id", index=True)
+    jobseeker_id: int = Field(foreign_key="jobseeker.id", index=True)
+    created_at: datetime = Field(default_factory=utcnow)
+
+

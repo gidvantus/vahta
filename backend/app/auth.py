@@ -134,6 +134,7 @@ def _authenticate_jobseeker(
             passport=jobseeker.passport,
             citizenship=jobseeker.citizenship,
             medical_book=jobseeker.medical_book,
+            photo=jobseeker.photo,
         ),
     )
 

@@ -11,8 +11,10 @@ from app.db import get_session
 from app.models import Vacancy
 from app.schemas import VacancyCreate, VacancyListOut, VacancyOut, VacancyStatusIn
 from app.service import (
+    blocked_company_ids,
     get_or_create_city,
     get_or_create_company,
+    is_jobseeker_blocked,
     make_full_slug,
     make_unique_full_slug,
     order_for,
@@ -34,12 +36,14 @@ def list_vacancies(
     sort: Literal["date", "salary-desc", "salary-asc"] = Query("date", description="Сортировка"),
     legal_company_id: Optional[int] = Query(None, description="Вакансии организации из личного кабинета"),
     status: Optional[str] = Query(None, description="Статус для списка компании: draft, published, archived"),
+    jobseeker_id: Optional[int] = Query(None, description="Скрыть вакансии компаний, заблокировавших вахтовика"),
     page: int = Query(1, ge=1, description="Номер страницы"),
     page_size: int = Query(20, ge=1, le=100, description="Размер страницы"),
     session: Session = Depends(get_session),
 ) -> VacancyListOut:
     city_list = [c.strip() for c in cities.split(",") if c.strip()] if cities else None
 
+    hidden = blocked_company_ids(session, jobseeker_id) if jobseeker_id else None
     conds = vacancy_conditions(
         q=q,
         cities=city_list,
@@ -48,6 +52,7 @@ def list_vacancies(
         schedule=schedule,
         legal_company_id=legal_company_id,
         status=status,
+        hidden_company_ids=hidden,
     )
 
     total = session.exec(
@@ -77,6 +82,7 @@ def list_vacancies(
 @router.get("/slug/{slug}", response_model=VacancyOut, summary="Вакансия по полному слагу (транслит названия + организации)")
 def get_vacancy_by_slug(
     slug: str,
+    jobseeker_id: Optional[int] = Query(None),
     session: Session = Depends(get_session),
 ) -> VacancyOut:
     """Ищет вакансию по полному слагу карточки.
@@ -95,16 +101,21 @@ def get_vacancy_by_slug(
     ).first()
     if v is None:
         raise HTTPException(status_code=404, detail="Вакансия не найдена")
+    if jobseeker_id and is_jobseeker_blocked(session, jobseeker_id, v.legal_company_id):
+        raise HTTPException(status_code=404, detail="Вакансия не найдена")
     return to_vacancy_out(v)
 
 
 @router.get("/{vacancy_id}", response_model=VacancyOut, summary="Вакансия по id")
 def get_vacancy(
     vacancy_id: int,
+    jobseeker_id: Optional[int] = Query(None),
     session: Session = Depends(get_session),
 ) -> VacancyOut:
     v = session.get(Vacancy, vacancy_id)
     if v is None or v.status != "published":
+        raise HTTPException(status_code=404, detail="Вакансия не найдена")
+    if jobseeker_id and is_jobseeker_blocked(session, jobseeker_id, v.legal_company_id):
         raise HTTPException(status_code=404, detail="Вакансия не найдена")
     return to_vacancy_out(v)
 

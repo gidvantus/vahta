@@ -22,8 +22,8 @@ export default function FilterSidebar({ filters, state, onCityToggle, onSalaryCh
   const [cityQuery, setCityQuery] = useState('');
   const [showAllCities, setShowAllCities] = useState(false);
 
-  const mainCities = useMemo(() => filters.cities.filter((c) => c.is_main), [filters]);
-  const extraCities = useMemo(() => filters.cities.filter((c) => !c.is_main), [filters]);
+  const mainCities = useMemo(() => (filters.cities || []).filter((c) => c.is_main), [filters]);
+  const extraCities = useMemo(() => (filters.cities || []).filter((c) => !c.is_main), [filters]);
 
   const q = cityQuery.trim().toLowerCase();
   const visibleMain = mainCities.filter((c) => !q || c.name.toLowerCase().includes(q));
@@ -79,7 +79,7 @@ export default function FilterSidebar({ filters, state, onCityToggle, onSalaryCh
         <section className="filter-group">
           <h2 className="filter-group__title">{IconMoney}Зарплата</h2>
           <ul className="filter-list">
-            {filters.salary.map((opt) => (
+            {filters.salary?.map((opt) => (
               <li key={opt.value} className="filter-item">
                 <label>
                   <input
@@ -99,7 +99,7 @@ export default function FilterSidebar({ filters, state, onCityToggle, onSalaryCh
         <section className="filter-group">
           <h2 className="filter-group__title">{IconCalendar}График вахты</h2>
           <ul className="filter-list">
-            {filters.schedules.map((s) => (
+            {filters.schedules?.map((s) => (
               <li key={s.value} className="filter-item">
                 <label>
                   <input

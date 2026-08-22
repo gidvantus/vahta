@@ -31,12 +31,13 @@ async function apiError(res) {
 }
 
 /* Список вакансий с фильтрами и пагинацией. */
-export function fetchVacancies(state, page = 1, pageSize = DEFAULT_PAGE_SIZE) {
+export function fetchVacancies(state, page = 1, pageSize = DEFAULT_PAGE_SIZE, extra = {}) {
   const params = new URLSearchParams();
   const p = buildQueryParams(state);
   for (const [k, v] of Object.entries(p)) params.set(k, String(v));
   params.set('page', String(page));
   params.set('page_size', String(pageSize));
+  if (extra.jobseekerId) params.set('jobseeker_id', String(extra.jobseekerId));
   return getJSON(`${API_BASE}/vacancies?${params}`);
 }
 
@@ -71,8 +72,11 @@ export function fetchFilters() {
 }
 
 /* Детальная карточка вакансии по slug (транслит названия). */
-export function fetchVacancyBySlug(slug) {
-  return getJSON(`${API_BASE}/vacancies/slug/${encodeURIComponent(slug)}`);
+export function fetchVacancyBySlug(slug, extra = {}) {
+  const params = extra.jobseekerId
+    ? `?jobseeker_id=${encodeURIComponent(extra.jobseekerId)}`
+    : '';
+  return getJSON(`${API_BASE}/vacancies/slug/${encodeURIComponent(slug)}${params}`);
 }
 
 /* Справочники: города и компании (для формы создания вакансии). */
