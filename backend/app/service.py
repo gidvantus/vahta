@@ -11,7 +11,7 @@ from uuid import uuid4
 from sqlalchemy import func, or_
 from sqlmodel import Session, select
 
-from app.models import City, Company, Schedule, Vacancy
+from app.models import City, Company, LegalCompany, Schedule, Vacancy
 from app.schemas import VacancyOut
 from app.translit import translit_slug
 
@@ -56,9 +56,9 @@ def vacancy_conditions(
     Страница «Список вакансий» компании (legal_company_id задан):
     вакансии организации — по статусу (или все, если статус не указан).
 
-    Требует, чтобы к запросу были присоединены city, company
-    (для текстового поиска по городу и компании) и schedule_ref
-    (для поиска/фильтра по графику вахты).
+    Требует, чтобы к запросу были присоединены city, company,
+    legal_company (для текстового поиска по городам и организациям)
+    и schedule_ref (для поиска/фильтра по графику вахты).
     """
     if legal_company_id is not None:
         # Список компании: вакансии владельца по вкладке (или все).
@@ -77,6 +77,9 @@ def vacancy_conditions(
                 func.lower(Schedule.value).like(like),
                 func.lower(City.name).like(like),
                 func.lower(Company.name).like(like),
+                # Название организации из личного кабинета (legal_company):
+                # данные компании берутся из неё, а не из отдельного поля.
+                func.lower(LegalCompany.name).like(like),
             )
         )
 
@@ -172,17 +175,32 @@ def make_unique_full_slug(session: Session, base: str) -> str:
 
 
 def to_vacancy_out(v: Vacancy) -> VacancyOut:
-    """Собирает плоскую модель ответа из модели БД."""
+    """Собирает плоскую модель ответа из модели БД.
+
+    Название организации берётся из данных личного кабинета
+    (legal_company) — отдельно в вакансии оно не хранится. Для
+    старых вакансий без владельца из кабинета — из справочника
+    company (каталог/сид).
+    """
+    if v.legal_company is not None:
+        # Владелец из кабинета: название и слаг — из записи организации.
+        org_name = v.legal_company.name
+        org_slug = slugify(v.legal_company.name)
+    elif v.company is not None:
+        # Старые/сидовые вакансии: компания из справочника каталога.
+        org_name = v.company.name
+        org_slug = v.company.slug
+    else:
+        org_name = ""
+        org_slug = None
+
     return VacancyOut(
         id=v.id,
         title=v.title,
         slug=v.slug or translit_slug(v.title),
-        company_slug=v.company.slug if v.company else None,
+        company_slug=org_slug,
         full_slug=v.full_slug
-        or make_full_slug(
-            v.slug or translit_slug(v.title),
-            v.company.slug if v.company else None,
-        ),
+        or make_full_slug(v.slug or translit_slug(v.title), org_slug),
         status=v.status,
         legal_company_id=v.legal_company_id,
         salary_from=v.salary_from,
@@ -190,7 +208,7 @@ def to_vacancy_out(v: Vacancy) -> VacancyOut:
         schedule=v.schedule_ref.value if v.schedule_ref else "",
         description=v.description,
         city=v.city.name if v.city else "",
-        company=v.company.name if v.company else "",
+        company=org_name,
         logo=v.company.logo if v.company else None,
         verified=v.company.verified if v.company else False,
         published_at=v.published_at,

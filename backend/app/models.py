@@ -137,6 +137,10 @@ class Vacancy(SQLModel, table=True):
     city: Optional[City] = Relationship(back_populates="vacancies")
     company: Optional[Company] = Relationship(back_populates="vacancies")
     schedule_ref: Optional[Schedule] = Relationship(back_populates="vacancies")
+    # Организация из личного кабинета (владелец вакансии). Данные
+    # организации отдельно в вакансии не сохраняются — при просмотре
+    # название берётся из записи legal_company (см. service.to_vacancy_out).
+    legal_company: Optional["LegalCompany"] = Relationship(back_populates="vacancies")
 
 
 class LegalRegistrant(SQLModel, table=True):
@@ -176,6 +180,10 @@ class LegalCompany(SQLModel, table=True):
     name: str = Field(min_length=2, max_length=200)
     registrant_id: int = Field(foreign_key="legal_registrant.id", index=True)
     created_at: datetime = Field(default_factory=utcnow)
+
+    # Вакансии организации: данные компании берутся из этой записи
+    # при просмотре (см. service.to_vacancy_out).
+    vacancies: list["Vacancy"] = Relationship(back_populates="legal_company")
 
 
 class JobSeeker(SQLModel, table=True):
